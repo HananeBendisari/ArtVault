@@ -1,4 +1,3 @@
-cat > test/README-tests.md << 'EOF'
 # ArtVault – Test Suite and Gas Report
 
 This document summarizes the automated test suite and gas consumption report for the ArtVault smart contract system. All tests were written using Foundry and follow best practices in Solidity testing, including edge case handling and reverts.
