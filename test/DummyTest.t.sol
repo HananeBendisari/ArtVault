@@ -5,6 +5,8 @@ import "forge-std/Test.sol";
 
 contract DummyTest is Test {
     function testSanityCheck() public {
-        assertEq(1, 1);
+        uint256 a = 1;
+        uint256 b = 1;
+        assertEq(a, b);
     }
 }

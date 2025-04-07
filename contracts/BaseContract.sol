@@ -54,4 +54,38 @@ contract BaseContract {
         require(msg.sender == projects[_projectId].validator, "Error: Only the assigned validator can perform this action.");
         _;
     }
+
+    /**
+    * @dev Returns all details of a project.
+    * @param _projectId The ID of the project.
+    */
+    function getProject(uint256 _projectId)
+        public
+        view
+        returns (
+            address client,
+            address artist,
+            uint256 amount,
+            bool released,
+            address validator,
+            bool validated,
+            uint256 milestoneCount,
+            uint256 milestonesPaid
+        )
+    {
+        Project memory p = projects[_projectId];
+        return (
+            p.client,
+            p.artist,
+            p.amount,
+            p.released,
+            p.validator,
+            p.validated,
+            p.milestoneCount,
+            p.milestonesPaid
+        );
+    }
+
+    
+
 }

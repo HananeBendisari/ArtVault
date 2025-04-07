@@ -26,18 +26,15 @@ ArtVault is built using **modular inheritance**, splitting functionality into di
 5. **Final payment & project completion** or **refund** if milestones are not met.
 
 ## **Deployment & Testing**
-### **1️⃣ Deploy the Contracts**
-1. Deploy `BaseContract.sol`
-2. Deploy `ValidationContract.sol`
-3. Deploy `EscrowContract.sol`
-4. Deploy `ArtVault.sol`
 
-### **2️⃣ Test Workflow**
-- ✅ **Deposit Funds** → Call `depositFunds(artist, milestoneCount)` with ETH  
-- ✅ **Assign Validator** → Call `addValidator(projectId, validatorAddress)`  
-- ✅ **Validate Project** → Call `validateProject(projectId)` as validator  
-- ✅ **Release Milestone** → Call `releaseMilestone(projectId)` by client  
-- ✅ **Refund Client** → Call `refundClient(projectId)` before release  
+Contracts are modular, deployed in this order:
+1. `BaseContract.sol`
+2. `ValidationContract.sol`
+3. `EscrowContract.sol`
+4. `ArtVault.sol`
+
+For full test coverage, edge cases and gas profiling →  
+🧪 See [`test/README-tests.md`](test/README-tests.md)
 
 ## **Security Measures**
 ✔️ **ReentrancyGuard** – Prevents reentrancy attacks
