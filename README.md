@@ -34,7 +34,7 @@ Contracts are modular, deployed in this order:
 4. `ArtVault.sol`
 
 For full test coverage, edge cases and gas profiling →  
-🧪 See [`test/README-tests.md`](test/README-tests.md)
+🧪 See [`README-tests.md`](README-tests.md)
 
 ## **Security Measures**
 ✔️ **ReentrancyGuard** – Prevents reentrancy attacks
