@@ -109,6 +109,7 @@ contract ArtVaultTest is Test {
         assertEq(balanceAfter - balanceBefore, 2 ether, "Refund amount mismatch");
     }
 
+    // Should revert if refund is attempted after all milestones have been paid
     function testRefundFailsAfterRelease() public {
         // Client deposits 3 ETH for 3 milestones
         vm.prank(client);
@@ -118,21 +119,24 @@ contract ArtVaultTest is Test {
         vm.prank(client);
         vault.addValidator(0, validator);
 
-        // Validator validates the project
+        // Project is validated
         vm.prank(validator);
         vault.validateProject(0);
 
-        // Client releases all milestones
+        // All milestones are released
         for (uint256 i = 0; i < 3; i++) {
             vm.prank(client);
             vault.releaseMilestone(0);
         }
 
-        // Attempt refund after full release (should fail)
+        // Refund should fail now
         vm.prank(client);
-        vm.expectRevert("Funds already released.");
+        vm.expectRevert("Error: Funds already released.");
         vault.refundClient(0);
     }
+
+
+
 
     function testClientCanAssignValidator() public {
         vm.prank(client);
@@ -180,23 +184,30 @@ contract ArtVaultTest is Test {
         vault.validateProject(0);
     }
 
+    // Should revert if validation is attempted after full release
     function testCannotValidateAfterRelease() public {
+        // 1 milestone project
         vm.prank(client);
         vault.depositFunds{value: 1 ether}(artist, 1);
 
+        // Validator assigned
         vm.prank(client);
         vault.addValidator(0, validator);
 
+        // Validated once
         vm.prank(validator);
         vault.validateProject(0);
 
+        // All funds are released
         vm.prank(client);
-        vault.releaseMilestone(0); // full release, 1 milestone only
+        vault.releaseMilestone(0);
 
+        // Trying to validate again should fail
         vm.prank(validator);
-        vm.expectRevert("Funds already released.");
+        vm.expectRevert("Error: Funds already released.");
         vault.validateProject(0);
     }
+
     function testRefundFailsAfterMilestonePaid() public {
         vm.prank(client);
         vault.depositFunds{value: 3 ether}(artist, 3);
@@ -211,7 +222,7 @@ contract ArtVaultTest is Test {
         vault.releaseMilestone(0); // Pay 1/3 milestone
 
         vm.prank(client);
-        vm.expectRevert("Milestones already paid.");
+        vm.expectRevert("Error: Cannot refund after partial release");
         vault.refundClient(0);
     }
 
@@ -267,27 +278,32 @@ contract ArtVaultTest is Test {
         assertEq(releasedAfter2, true, "Project should be marked released after all milestones");
         assertEq(artistAfter - artistBefore, 1 ether, "Second milestone not transferred correctly");
     }
+    // Should revert if trying to release more milestones than available
     function testCannotOverpayMilestones() public {
+        // 3 milestones project
         vm.prank(client);
-        vault.depositFunds{value: 3 ether}(artist, 3); // 3 milestones
+        vault.depositFunds{value: 3 ether}(artist, 3);
 
+        // Validator setup
         vm.prank(client);
         vault.addValidator(0, validator);
 
+        // Project validated
         vm.prank(validator);
         vault.validateProject(0);
 
-        // Pay all 3 milestones
+        // Release all milestones
         for (uint256 i = 0; i < 3; i++) {
             vm.prank(client);
             vault.releaseMilestone(0);
         }
 
-        // Try to release a 4th milestone, should revert
+        // 4th release attempt should fail
         vm.prank(client);
-        vm.expectRevert("Funds already released.");
+        vm.expectRevert("Error: All milestones paid.");
         vault.releaseMilestone(0);
     }
+
 
 }
 
