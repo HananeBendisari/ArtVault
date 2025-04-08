@@ -17,7 +17,7 @@ contract EscrowContract is BaseContract, ReentrancyGuard {
  */
 function depositFunds(address _artist, uint256 _milestoneCount) external payable {
     require(_artist != address(0), "Invalid artist address");
-    require(msg.value > 0, "Must deposit ETH");
+    require(msg.value > 0, "Amount must be > 0");
     require(_milestoneCount > 0, "Milestone count must be greater than zero");
 
     uint256 newProjectId = projectCount;
@@ -44,10 +44,10 @@ function depositFunds(address _artist, uint256 _milestoneCount) external payable
      * @param _projectId The ID of the project.
      */
     function releaseMilestone(uint256 _projectId) public nonReentrant projectExists(_projectId) onlyClient(_projectId) {
+        require(projects[_projectId].validated, "Error: Project must be validated before releasing funds");
         Project storage project = projects[_projectId];
-        require(!project.released, "Funds already released.");
-        require(project.validated, "Project must be validated first.");
         require(project.milestonesPaid < project.milestoneCount, "All milestones paid.");
+        require(!project.released, "Funds already released.");
 
         uint256 milestoneAmount = project.amount / project.milestoneCount;
         project.milestonesPaid++;
@@ -73,8 +73,11 @@ function depositFunds(address _artist, uint256 _milestoneCount) external payable
      */
     function refundClient(uint256 _projectId) public nonReentrant projectExists(_projectId) onlyClient(_projectId) {
         Project storage project = projects[_projectId];
-        require(!project.released, "Funds already released.");
-        require(project.milestonesPaid == 0, "Milestones already paid.");
+        if (project.released) {
+            revert("Error: Cannot refund after full release");
+        } else if (project.milestonesPaid > 0) {
+        revert("Error: Cannot refund after partial release");
+        }
 
 
         uint256 amount = project.amount;

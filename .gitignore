@@ -25,3 +25,9 @@ hardhat.config.js
 # Ignore MacOS system files
 .DS_Store
 
+# Foundry output
+out/
+
+# Forge test files (optional)
+*.t.sol
+

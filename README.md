@@ -1,4 +1,10 @@
-# 🎵 ArtVault - Decentralized Escrow for Creative Projects 🎥
+![Forge CI](https://github.com/HananeBendisari/ArtVault/actions/workflows/ci.yml/badge.svg)
+![Tests](https://img.shields.io/badge/tests-100%25-green)
+![Coverage](https://img.shields.io/badge/coverage-90%25-blue)
+![License](https://img.shields.io/github/license/HananeBendisari/ArtVault)
+![Last Commit](https://img.shields.io/github/last-commit/HananeBendisari/ArtVault)
+
+# 🎵 ArtVault - Decentralized Escrow for Creative Projects
 
 ## **Overview**
 ArtVault is a decentralized escrow system designed for **artists and clients**, ensuring secure milestone-based payments. This smart contract enables clients to deposit funds, validators to approve project milestones, and artists to receive payments progressively.

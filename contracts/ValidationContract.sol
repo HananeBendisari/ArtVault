@@ -31,6 +31,7 @@ contract ValidationContract is BaseContract {
      * @param _projectId The ID of the project.
      */
     function validateProject(uint256 _projectId) public projectExists(_projectId) onlyValidator(_projectId) {
+        require(!projects[_projectId].validated, "Project already validated.");
         Project storage project = projects[_projectId];
         require(!project.released, "Funds already released.");
         require(project.validator != address(0), "No validator assigned.");
