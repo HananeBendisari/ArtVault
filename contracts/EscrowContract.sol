@@ -73,16 +73,26 @@ function releaseMilestone(uint256 _projectId) public nonReentrant projectExists(
 }
 
 
-function refundClient(uint256 _projectId) public nonReentrant projectExists(_projectId) onlyClient(_projectId) {
+function refundClient(uint256 _projectId)
+    public
+    nonReentrant
+    projectExists(_projectId)
+    onlyClient(_projectId)
+{
     Project storage project = projects[_projectId];
 
-    if (project.amount == 0) {
-        revert("Error: No funds to refund.");
+    // Cannot refund if already fully released
+    if (project.released) {
+        revert("Error: Cannot refund after full release");
     }
 
-    if (project.released || project.milestonesPaid > 0) {
-        revert("Error: All milestones paid.");
+    // Cannot refund if any milestone has been paid
+    if (project.milestonesPaid > 0) {
+        revert("Error: Cannot refund after partial release");
     }
+
+    // Ensure funds are available
+    require(project.amount > 0, "Error: No funds to refund.");
 
     uint256 amount = project.amount;
     address client = project.client;
@@ -95,5 +105,6 @@ function refundClient(uint256 _projectId) public nonReentrant projectExists(_pro
     emit FundsRefunded(_projectId, client);
     emit ClientRefunded(_projectId, client, amount);
 }
+
 
 }

@@ -6,7 +6,7 @@ import "../contracts/ArtVault.sol";
 
 /**
  * @title FuzzHappyPath
- * @dev Integration test simulating full successful flow of deposit, validation, release, and failed refund.
+ * @dev Integration test simulating full successful flow of deposit, validation, full milestone release, and refund denial.
  */
 contract FuzzHappyPath is Test {
     ArtVault vault;
@@ -14,16 +14,15 @@ contract FuzzHappyPath is Test {
     address payable artist = payable(address(0x2));
     address validator = address(0x3);
 
-    // Prepare vault and fund the client
+    // Set up the test with deployed vault and funded client
     function setUp() public {
         vault = new ArtVault();
         vm.deal(client, 10 ether);
-        vm.deal(address(vault), 0);
     }
 
-    /// @dev Simulates a full escrow cycle: deposit, validation, milestone releases, and refund denial
+    /// @dev Full flow: deposit → validate → release 3 milestones → fail refund
     function testFuzz_FullEscrowFlow() public {
-        // Step 1: Client deposits funds and assigns validator
+        // Step 1: Client deposits and assigns validator
         vm.startPrank(client);
         vault.depositFunds{value: 3 ether}(artist, 3);
         vault.addValidator(0, validator);
@@ -34,16 +33,14 @@ contract FuzzHappyPath is Test {
         vault.validateProject(0);
 
         // Step 3: Client releases all 3 milestones
-        vm.prank(client);
-        vault.releaseMilestone(0);
-        vm.prank(client);
-        vault.releaseMilestone(0);
-        vm.prank(client);
-        vault.releaseMilestone(0);
+        for (uint256 i = 0; i < 3; i++) {
+            vm.prank(client);
+            vault.releaseMilestone(0);
+        }
 
-        // Step 4: Attempt refund after full release should fail
-        vm.expectRevert("Error: Cannot refund after full release");
+        // Step 4: Refund attempt should fail after full release
         vm.prank(client);
+        vm.expectRevert("Error: Cannot refund after full release");
         vault.refundClient(0);
     }
 }

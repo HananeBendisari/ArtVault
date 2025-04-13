@@ -4,6 +4,10 @@ pragma solidity ^0.8.20;
 import "forge-std/Test.sol";
 import "../contracts/ArtVault.sol";
 
+/**
+ * @title FuzzReleaseMilestone
+ * @dev Fuzz and edge tests around milestone release scenarios.
+ */
 contract FuzzReleaseMilestone is Test {
     ArtVault vault;
     address client = address(1);
@@ -16,6 +20,7 @@ contract FuzzReleaseMilestone is Test {
         vm.deal(validator, 1 ether);
         vm.deal(artist, 0);
 
+        // Setup valid project with validator assigned and validated
         vm.prank(client);
         vault.depositFunds{value: 3 ether}(artist, 3);
 
@@ -26,7 +31,7 @@ contract FuzzReleaseMilestone is Test {
         vault.validateProject(0);
     }
 
-
+    /// @dev Should correctly release milestones and update release status
     function testFuzz_ReleaseMilestone(uint8 milestoneCount) public {
         vm.assume(milestoneCount > 0 && milestoneCount <= 3);
 
@@ -37,6 +42,7 @@ contract FuzzReleaseMilestone is Test {
 
         (, , , bool released, , , , uint256 paid) = vault.getProject(0);
         assertEq(paid, milestoneCount, "Incorrect milestone count");
+
         if (milestoneCount == 3) {
             assertTrue(released, "Project should be marked as released");
         } else {
@@ -44,6 +50,7 @@ contract FuzzReleaseMilestone is Test {
         }
     }
 
+    /// @dev Should revert if trying to release milestone for unvalidated project
     function testFuzz_RevertIfProjectNotValidated() public {
         vm.startPrank(client);
         vault.depositFunds{value: 3 ether}(artist, 3);
@@ -53,5 +60,4 @@ contract FuzzReleaseMilestone is Test {
         vm.prank(client);
         vault.releaseMilestone(1);
     }
-
 }

@@ -7,14 +7,17 @@ import "./ValidationContract.sol";
 
 /**
  * @title ArtVault
- * @dev Main contract inheriting escrow and validation functionalities.
+ * @dev Main contract that composes escrow and validation functionalities.
+ * Inherits storage and logic from BaseContract, EscrowContract, and ValidationContract.
  */
 contract ArtVault is BaseContract, EscrowContract, ValidationContract {
-    // ArtVault now properly inherits all functionalities
-
-/**
- * @dev Helper for testing purposes: manually creates a project.
- */
+    /**
+     * @notice Manually creates an empty project (used only for testing).
+     * @dev Only for test purposes. Sets up an empty project without funds.
+     * @param _projectId The ID of the new project.
+     * @param _artist The address of the artist.
+     * @param _milestoneCount Number of milestones to configure.
+     */
     function createProject(
         uint256 _projectId,
         address payable _artist,
@@ -35,6 +38,4 @@ contract ArtVault is BaseContract, EscrowContract, ValidationContract {
 
         projectCount++;
     }
-
 }
-

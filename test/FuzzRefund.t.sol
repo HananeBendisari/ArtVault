@@ -41,8 +41,8 @@ contract FuzzRefund is Test {
         vault.releaseMilestone(0);
 
         // Step 5: Attempt refund should fail
-        vm.expectRevert("Error: Cannot refund after partial release");
         vm.prank(client);
+        vm.expectRevert("Error: Cannot refund after partial release");
         vault.refundClient(0);
     }
 }

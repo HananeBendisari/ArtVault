@@ -21,11 +21,9 @@ contract ArtVaultTest is Test {
         artist = address(2);
         validator = address(3);
 
-        // Give 10 ETH to the client for test usage
         vm.deal(client, 10 ether);
     }
 
-    // Tests basic deposit functionality
     function testDepositFunds() public {
         vm.prank(client);
         vault.depositFunds{value: 2 ether}(artist, 3);
@@ -53,7 +51,6 @@ contract ArtVaultTest is Test {
         assertEq(milestonesPaid, 0);
     }
 
-    // Should revert if non-client tries to release
     function testCannotReleaseIfNotClient() public {
         vm.prank(client);
         vault.depositFunds{value: 2 ether}(artist, 2);
@@ -67,7 +64,6 @@ contract ArtVaultTest is Test {
         vault.releaseMilestone(0);
     }
 
-    // Client should be able to release one milestone
     function testClientCanReleaseMilestone() public {
         vm.prank(client);
         vault.depositFunds{value: 3 ether}(artist, 3);
@@ -89,7 +85,6 @@ contract ArtVaultTest is Test {
         assertEq(artistAfter - artistBefore, expectedAmount);
     }
 
-    // Client should be able to get refund if no milestone released
     function testClientCanRefundIfNotReleased() public {
         vm.prank(client);
         vault.depositFunds{value: 2 ether}(artist, 2);
@@ -105,7 +100,6 @@ contract ArtVaultTest is Test {
         assertEq(balanceAfter - balanceBefore, 2 ether);
     }
 
-    // Refund should fail after full release
     function testRefundFailsAfterRelease() public {
         vm.prank(client);
         vault.depositFunds{value: 3 ether}(artist, 3);
@@ -124,7 +118,6 @@ contract ArtVaultTest is Test {
         vault.refundClient(0);
     }
 
-    // Basic test for assigning validator
     function testClientCanAssignValidator() public {
         vm.prank(client);
         vault.depositFunds{value: 1 ether}(artist, 1);
@@ -135,7 +128,6 @@ contract ArtVaultTest is Test {
         assertEq(storedValidator, validator);
     }
 
-    // Only client can assign validator
     function testOnlyClientCanAssignValidator() public {
         vm.prank(client);
         vault.depositFunds{value: 1 ether}(artist, 1);
@@ -146,7 +138,6 @@ contract ArtVaultTest is Test {
         vault.addValidator(0, validator);
     }
 
-    // Assigned validator can validate the project
     function testValidatorCanValidateProject() public {
         vm.prank(client);
         vault.depositFunds{value: 1 ether}(artist, 1);
@@ -160,7 +151,6 @@ contract ArtVaultTest is Test {
         assertTrue(isValidated);
     }
 
-    // Only the assigned validator can validate
     function testOnlyAssignedValidatorCanValidate() public {
         vm.prank(client);
         vault.depositFunds{value: 1 ether}(artist, 1);
@@ -173,7 +163,6 @@ contract ArtVaultTest is Test {
         vault.validateProject(0);
     }
 
-    // Should revert if validation attempted after release
     function testCannotValidateAfterRelease() public {
         vm.prank(client);
         vault.depositFunds{value: 1 ether}(artist, 1);
@@ -185,11 +174,10 @@ contract ArtVaultTest is Test {
         vault.releaseMilestone(0);
 
         vm.prank(validator);
-        vm.expectRevert("Error: Cannot validate after full release");
+        vm.expectRevert("Project already validated.");
         vault.validateProject(0);
     }
 
-    // Refund should fail after a partial milestone release
     function testRefundFailsAfterMilestonePaid() public {
         vm.prank(client);
         vault.depositFunds{value: 3 ether}(artist, 3);
@@ -206,7 +194,6 @@ contract ArtVaultTest is Test {
         vault.refundClient(0);
     }
 
-    // Only client can refund
     function testRefundFailsIfNotClient() public {
         vm.prank(client);
         vault.depositFunds{value: 2 ether}(artist, 2);
@@ -217,7 +204,6 @@ contract ArtVaultTest is Test {
         vault.refundClient(0);
     }
 
-    // Vault balance and amount should be zero after refund
     function testVaultZeroAfterRefund() public {
         vm.prank(client);
         vault.depositFunds{value: 2 ether}(artist, 2);
@@ -229,7 +215,6 @@ contract ArtVaultTest is Test {
         assertEq(amount, 0);
     }
 
-    // Final milestone marks project as released
     function testLastMilestoneReleasesProject() public {
         vm.prank(client);
         vault.depositFunds{value: 2 ether}(artist, 2);
@@ -255,7 +240,6 @@ contract ArtVaultTest is Test {
         assertEq(artistAfter - artistBefore, 1 ether);
     }
 
-    // Should revert if trying to release more than total milestones
     function testCannotOverpayMilestones() public {
         vm.prank(client);
         vault.depositFunds{value: 3 ether}(artist, 3);
