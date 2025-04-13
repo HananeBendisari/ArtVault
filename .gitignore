@@ -28,6 +28,4 @@ hardhat.config.js
 # Foundry output
 out/
 
-# Forge test files (optional)
-*.t.sol
 

@@ -4,6 +4,10 @@ pragma solidity ^0.8.19;
 import "forge-std/Test.sol";
 import "../contracts/ArtVault.sol";
 
+/**
+ * @title ArtVaultTest
+ * @dev End-to-end tests for ArtVault contract logic including deposits, validation, releases, refunds.
+ */
 contract ArtVaultTest is Test {
     ArtVault public vault;
 
@@ -17,18 +21,17 @@ contract ArtVaultTest is Test {
         artist = address(2);
         validator = address(3);
 
-        // Donne 10 ETH au client pour les tests
+        // Give 10 ETH to the client for test usage
         vm.deal(client, 10 ether);
     }
 
+    // Tests basic deposit functionality
     function testDepositFunds() public {
         vm.prank(client);
         vault.depositFunds{value: 2 ether}(artist, 3);
 
-        // Vérifie que le vault a reçu l'argent
         assertEq(address(vault).balance, 2 ether);
 
-        // Vérifie les données du projet
         (
             address storedClient,
             address storedArtist,
@@ -50,28 +53,26 @@ contract ArtVaultTest is Test {
         assertEq(milestonesPaid, 0);
     }
 
+    // Should revert if non-client tries to release
     function testCannotReleaseIfNotClient() public {
         vm.prank(client);
         vault.depositFunds{value: 2 ether}(artist, 2);
-
         vm.prank(client);
         vault.addValidator(0, validator);
-
         vm.prank(validator);
         vault.validateProject(0);
 
-        vm.prank(address(99)); // un intrus
+        vm.prank(address(99));
         vm.expectRevert("Error: Only the client can perform this action.");
         vault.releaseMilestone(0);
     }
 
+    // Client should be able to release one milestone
     function testClientCanReleaseMilestone() public {
         vm.prank(client);
         vault.depositFunds{value: 3 ether}(artist, 3);
-
         vm.prank(client);
         vault.addValidator(0, validator);
-
         vm.prank(validator);
         vault.validateProject(0);
 
@@ -88,67 +89,53 @@ contract ArtVaultTest is Test {
         assertEq(artistAfter - artistBefore, expectedAmount);
     }
 
+    // Client should be able to get refund if no milestone released
     function testClientCanRefundIfNotReleased() public {
-        // Client deposits 2 ETH for 2 milestones
         vm.prank(client);
         vault.depositFunds{value: 2 ether}(artist, 2);
 
-        // Client's balance before refund
         uint256 balanceBefore = client.balance;
-
-        // Client initiates refund
         vm.prank(client);
         vault.refundClient(0);
 
-        // Check that the project funds are set to zero
         (, , uint256 remainingAmount, , , , , ) = vault.projects(0);
-        assertEq(remainingAmount, 0, "Project funds should be zero after refund");
+        assertEq(remainingAmount, 0);
 
-        // Check that the client received the refund
         uint256 balanceAfter = client.balance;
-        assertEq(balanceAfter - balanceBefore, 2 ether, "Refund amount mismatch");
+        assertEq(balanceAfter - balanceBefore, 2 ether);
     }
 
-    // Should revert if refund is attempted after all milestones have been paid
+    // Refund should fail after full release
     function testRefundFailsAfterRelease() public {
-        // Client deposits 3 ETH for 3 milestones
         vm.prank(client);
         vault.depositFunds{value: 3 ether}(artist, 3);
-
-        // Assign validator
         vm.prank(client);
         vault.addValidator(0, validator);
-
-        // Project is validated
         vm.prank(validator);
         vault.validateProject(0);
 
-        // All milestones are released
         for (uint256 i = 0; i < 3; i++) {
             vm.prank(client);
             vault.releaseMilestone(0);
         }
 
-        // Refund should fail now
         vm.prank(client);
-        vm.expectRevert("Error: Funds already released.");
+        vm.expectRevert("Error: Cannot refund after full release");
         vault.refundClient(0);
     }
 
-
-
-
+    // Basic test for assigning validator
     function testClientCanAssignValidator() public {
         vm.prank(client);
         vault.depositFunds{value: 1 ether}(artist, 1);
-
         vm.prank(client);
         vault.addValidator(0, validator);
 
         (, , , , address storedValidator, , , ) = vault.projects(0);
-        assertEq(storedValidator, validator, "Validator was not properly assigned");
+        assertEq(storedValidator, validator);
     }
 
+    // Only client can assign validator
     function testOnlyClientCanAssignValidator() public {
         vm.prank(client);
         vault.depositFunds{value: 1 ether}(artist, 1);
@@ -158,10 +145,11 @@ contract ArtVaultTest is Test {
         vm.expectRevert("Error: Only the client can perform this action.");
         vault.addValidator(0, validator);
     }
+
+    // Assigned validator can validate the project
     function testValidatorCanValidateProject() public {
         vm.prank(client);
         vault.depositFunds{value: 1 ether}(artist, 1);
-
         vm.prank(client);
         vault.addValidator(0, validator);
 
@@ -169,12 +157,13 @@ contract ArtVaultTest is Test {
         vault.validateProject(0);
 
         (, , , , , bool isValidated, , ) = vault.projects(0);
-        assertTrue(isValidated, "Project should be marked as validated");
+        assertTrue(isValidated);
     }
+
+    // Only the assigned validator can validate
     function testOnlyAssignedValidatorCanValidate() public {
         vm.prank(client);
         vault.depositFunds{value: 1 ether}(artist, 1);
-
         vm.prank(client);
         vault.addValidator(0, validator);
 
@@ -184,48 +173,40 @@ contract ArtVaultTest is Test {
         vault.validateProject(0);
     }
 
-    // Should revert if validation is attempted after full release
+    // Should revert if validation attempted after release
     function testCannotValidateAfterRelease() public {
-        // 1 milestone project
         vm.prank(client);
         vault.depositFunds{value: 1 ether}(artist, 1);
-
-        // Validator assigned
         vm.prank(client);
         vault.addValidator(0, validator);
-
-        // Validated once
         vm.prank(validator);
         vault.validateProject(0);
-
-        // All funds are released
         vm.prank(client);
         vault.releaseMilestone(0);
 
-        // Trying to validate again should fail
         vm.prank(validator);
-        vm.expectRevert("Error: Funds already released.");
+        vm.expectRevert("Error: Cannot validate after full release");
         vault.validateProject(0);
     }
 
+    // Refund should fail after a partial milestone release
     function testRefundFailsAfterMilestonePaid() public {
         vm.prank(client);
         vault.depositFunds{value: 3 ether}(artist, 3);
-
         vm.prank(client);
         vault.addValidator(0, validator);
-
         vm.prank(validator);
         vault.validateProject(0);
 
         vm.prank(client);
-        vault.releaseMilestone(0); // Pay 1/3 milestone
+        vault.releaseMilestone(0);
 
         vm.prank(client);
         vm.expectRevert("Error: Cannot refund after partial release");
         vault.refundClient(0);
     }
 
+    // Only client can refund
     function testRefundFailsIfNotClient() public {
         vm.prank(client);
         vault.depositFunds{value: 2 ether}(artist, 2);
@@ -235,75 +216,61 @@ contract ArtVaultTest is Test {
         vm.expectRevert("Error: Only the client can perform this action.");
         vault.refundClient(0);
     }
+
+    // Vault balance and amount should be zero after refund
     function testVaultZeroAfterRefund() public {
         vm.prank(client);
         vault.depositFunds{value: 2 ether}(artist, 2);
-
         vm.prank(client);
         vault.refundClient(0);
 
         assertEq(address(vault).balance, 0);
-
         (, , uint256 amount, , , , , ) = vault.projects(0);
-        assertEq(amount, 0, "Project amount should be zero after refund");
+        assertEq(amount, 0);
     }
 
+    // Final milestone marks project as released
     function testLastMilestoneReleasesProject() public {
-        // Setup
         vm.prank(client);
-        vault.depositFunds{value: 2 ether}(artist, 2); // 2 milestones
-
+        vault.depositFunds{value: 2 ether}(artist, 2);
         vm.prank(client);
         vault.addValidator(0, validator);
-
         vm.prank(validator);
         vault.validateProject(0);
 
-        // Milestone 1
         vm.prank(client);
         vault.releaseMilestone(0);
-
         (, , , bool releasedAfter1, , , , uint256 paid1) = vault.getProject(0);
-        assertEq(paid1, 1, "Milestone count should be 1");
-        assertEq(releasedAfter1, false, "Project should not be marked released after 1 milestone");
+        assertEq(paid1, 1);
+        assertEq(releasedAfter1, false);
 
-        // Milestone 2
         uint256 artistBefore = artist.balance;
         vm.prank(client);
         vault.releaseMilestone(0);
         uint256 artistAfter = artist.balance;
 
         (, , , bool releasedAfter2, , , , uint256 paid2) = vault.getProject(0);
-        assertEq(paid2, 2, "Milestone count should be 2");
-        assertEq(releasedAfter2, true, "Project should be marked released after all milestones");
-        assertEq(artistAfter - artistBefore, 1 ether, "Second milestone not transferred correctly");
+        assertEq(paid2, 2);
+        assertEq(releasedAfter2, true);
+        assertEq(artistAfter - artistBefore, 1 ether);
     }
-    // Should revert if trying to release more milestones than available
+
+    // Should revert if trying to release more than total milestones
     function testCannotOverpayMilestones() public {
-        // 3 milestones project
         vm.prank(client);
         vault.depositFunds{value: 3 ether}(artist, 3);
-
-        // Validator setup
         vm.prank(client);
         vault.addValidator(0, validator);
-
-        // Project validated
         vm.prank(validator);
         vault.validateProject(0);
 
-        // Release all milestones
         for (uint256 i = 0; i < 3; i++) {
             vm.prank(client);
             vault.releaseMilestone(0);
         }
 
-        // 4th release attempt should fail
         vm.prank(client);
         vm.expectRevert("Error: All milestones paid.");
         vault.releaseMilestone(0);
     }
-
-
 }
-
