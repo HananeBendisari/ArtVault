@@ -32,8 +32,8 @@ Test files include fuzz tests such as:
 
 ---
 
-
 ### Gas Report (via `forge test --gas-report`)
+```bash
 
 | Function           | Min      | Avg      | Median   | Max      | Calls |
 |--------------------|----------|----------|----------|----------|-------|
@@ -47,6 +47,7 @@ Test files include fuzz tests such as:
 
 **Contract Deployment Cost**: `1,801,597` gas  
 **Contract Size**: `8069 bytes`
+```
 
 ---
 

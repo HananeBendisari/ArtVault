@@ -46,7 +46,8 @@ All contracts are modular and tested via Foundry.
 
 ```bash
 forge test --gas-report
-See [`README-tests.md`](README-tests.md) for test & gas report.
+# See README-tests.md for full test & gas report.
+```
 
 ## Security Measures
 
