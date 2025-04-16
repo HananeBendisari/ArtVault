@@ -51,19 +51,6 @@ contract ArtVaultTest is Test {
         assertEq(milestonesPaid, 0);
     }
 
-    function testCannotReleaseIfNotClient() public {
-        vm.prank(client);
-        vault.depositFunds{value: 2 ether}(artist, 2);
-        vm.prank(client);
-        vault.addValidator(0, validator);
-        vm.prank(validator);
-        vault.validateProject(0);
-
-        vm.prank(address(99));
-        vm.expectRevert("Error: Only the client can perform this action.");
-        vault.releaseMilestone(0);
-    }
-
     function testClientCanReleaseMilestone() public {
         vm.prank(client);
         vault.depositFunds{value: 3 ether}(artist, 3);

@@ -36,7 +36,7 @@ contract EscrowContract is BaseContract, ReentrancyGuard {
 
         projectCount++; // ➕ Increment global counter
 
-        emit FundsDeposited(newProjectId, msg.sender, _artist, msg.value); // 📢 Notify deposit
+        emit FundsDeposited(newProjectId, msg.sender, _artist, msg.value); // Notify deposit
     }
 
     /**
@@ -72,10 +72,10 @@ contract EscrowContract is BaseContract, ReentrancyGuard {
         (bool success, ) = payable(project.artist).call{value: milestoneAmount}("");
         require(success, "Transfer failed."); // ❗ Safety check
 
-        emit MilestoneReleased(_projectId, project.milestonesPaid, milestoneAmount); // 📢 Log event
+        emit MilestoneReleased(_projectId, project.milestonesPaid, milestoneAmount); // Log event
 
         if (project.released) {
-            emit FundsReleased(_projectId, project.artist, project.amount); // 📢 Final release
+            emit FundsReleased(_projectId, project.artist, project.amount); // Final release
         }
     }
 
@@ -113,7 +113,7 @@ contract EscrowContract is BaseContract, ReentrancyGuard {
         (bool success, ) = payable(client).call{value: amount}("");
         require(success, "Transfer failed."); // ❗ Secure send
 
-        emit FundsRefunded(_projectId, client); // 📢 Refund marker
-        emit ClientRefunded(_projectId, client, amount); // 📢 Refund details
+        emit FundsRefunded(_projectId, client); //Refund marker
+        emit ClientRefunded(_projectId, client, amount); //Refund details
     }
 }
