@@ -1,49 +1,58 @@
-# ArtVault – Test Suite and Gas Report
+# ArtVault – Test Suite & Gas Report
 
-This document summarizes the automated test suite and gas consumption report for the ArtVault smart contract system. All tests were written using Foundry and follow best practices in Solidity testing, including edge case handling and reverts.
+This document summarizes the test coverage and gas performance for the ArtVault smart contract system. All tests are written in Foundry using best practices for edge cases, reverts, automation, and role-based logic.
+
+---
 
 ## ✅ Test Coverage
 
-**Total Tests:** 16  
-**Status:** All tests passed  
-**Tools:** [Foundry](https://book.getfoundry.sh/) (forge)
+**Total Tests:** 29  
+**All Passed:** ✅  
+**Framework:** [Foundry](https://book.getfoundry.sh/)
 
-### Categories Covered:
-- Happy Path (standard flows)
-- Unhappy Path (invalid permissions, missing steps)
-- Reverts (expected failures)
-- State Validation (checking project status)
-- Refund Logic (pre- and post-release)
-- Full Escrow Flow (including validator interaction)
+### Covered Scenarios
 
----
-
-## Gas Report (Forge)
-
-Command used:  
-`forge test --gas-report`
-
-| Function               | Min     | Avg     | Median  | Max     | Calls |
-|------------------------|---------|---------|---------|---------|--------|
-| `addValidator`         | 24,753  | 46,566  | 48,748  | 48,748  | 11     |
-| `depositFunds`         | 140,767 | 140,767 | 140,767 | 140,767 | 15     |
-| `getProject`           | 3,107   | 3,107   | 3,107   | 3,107   | 2      |
-| `projects`             | 2,677   | 2,677   | 2,677   | 2,677   | 6      |
-| `refundClient`         | 29,255  | 37,004  | 33,881  | 44,932  | 5      |
-| `releaseMilestone`     | 29,481  | 68,534  | 55,803  | 97,903  | 13     |
-| `validateProject`      | 26,471  | 38,391  | 31,343  | 31,343  | 10     |
-
-**Deployment Cost:** 1,801,597  
-**Deployment Size:** 8069 bytes
-
-The gas usage is acceptable for a contract of this scope. The `releaseMilestone()` function shows natural variability due to conditional logic (especially when finalizing payments).
+- Valid milestone flow
+- Invalid refunds (post-release)
+- Only client/validator can trigger actions
+- Expected reverts tested
+-️ Mock Oracle auto-release
+- Milestone count and release enforcement
+- Full project lifecycle
 
 ---
 
-## Future Work
+## Fuzzing & Automation
 
-- Continue testing for multi-project edge cases
-- Add tests for disputes/arbitration logic (once implemented)
-- Cross-network simulation (Polygon / Arbitrum planned)
-EOF
+Test files include fuzz tests such as:
+- `FuzzDeposit.t.sol` – invalid amounts / zero milestones
+- `FuzzReleaseMilestone.t.sol` – milestone loop, boundary tests
+- `FuzzHappyPath.t.sol` – full flow with validation + oracle
+- `ArtVaultOracleMock.t.sol` – oracle-triggered logic (time-sensitive)
 
+---
+
+
+### Gas Report (via `forge test --gas-report`)
+
+| Function           | Min      | Avg      | Median   | Max      | Calls |
+|--------------------|----------|----------|----------|----------|-------|
+| `addValidator`     | 24,753   | 46,566   | 48,748   | 48,748   | 11    |
+| `depositFunds`     | 140,767  | 140,767  | 140,767  | 140,767  | 15    |
+| `getProject`       | 3,107    | 3,107    | 3,107    | 3,107    | 2     |
+| `projects`         | 2,677    | 2,677    | 2,677    | 2,677    | 6     |
+| `refundClient`     | 29,255   | 37,004   | 33,881   | 44,932   | 5     |
+| `releaseMilestone` | 29,481   | 68,534   | 55,803   | 97,903   | 13    |
+| `validateProject`  | 26,471   | 38,391   | 31,343   | 31,343   | 10    |
+
+**Contract Deployment Cost**: `1,801,597` gas  
+**Contract Size**: `8069 bytes`
+
+---
+
+## Future Testing
+Advanced Dispute Resolution logic
+
+Multi-actor fuzzing (invalid validator assignments, invalid re-validation)
+
+Integration with Chainlink & Gelato testnets

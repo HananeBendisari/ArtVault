@@ -4,67 +4,73 @@
 ![License](https://img.shields.io/github/license/HananeBendisari/ArtVault)
 ![Last Commit](https://img.shields.io/github/last-commit/HananeBendisari/ArtVault)
 
-# 🎵 ArtVault - Decentralized Escrow for Creative Projects
+# ArtVault - Decentralized Escrow for Creative Projects
 
 ## **Overview**
 ArtVault is a decentralized escrow system designed for **artists and clients**, ensuring secure milestone-based payments. This smart contract enables clients to deposit funds, validators to approve project milestones, and artists to receive payments progressively.
 
 ## **Features**
-✅ **Escrow Mechanism** – Funds are securely held until project validation  
-✅ **Milestone-based Payments** – Payments are released in stages  
-✅ **Validator System** – Third-party validation before fund release  
-✅ **Refund Mechanism** – Clients can get refunded if the project is not completed  
-✅ **Secure Transactions** – Uses **ReentrancyGuard** to prevent exploits  
+✅ Escrow Mechanism – Funds are securely held until project validation  
+✅ Milestone-based Payments – Payments are released in stages  
+✅ Validator System – Third-party validation before fund release  
+✅ Refund Mechanism – Clients can get refunded if the project is not completed  
+✅ Secure Transactions – Uses `ReentrancyGuard` to prevent exploits  
+✅ Oracle Integration (Mocked) – Automate payments after off-chain events (e.g. end of concert)  
 
 ## **Smart Contract Architecture**
-ArtVault is built using **modular inheritance**, splitting functionality into distinct contracts:
+ArtVault is built using modular inheritance:
 
-- **BaseContract.sol** – Stores project data, events, and modifiers  
-- **ValidationContract.sol** – Handles project validation and validator assignments  
-- **EscrowContract.sol** – Manages funds deposits, milestone payments, and refunds  
-- **ArtVault.sol** – Main contract combining escrow and validation  
+- `BaseContract.sol` – Stores project data, events, and access control
+- `ValidationContract.sol` – Handles validator assignment and project validation
+- `EscrowContract.sol` – Manages deposits, milestone payouts, and refunds
+- `ArtVault.sol` – Main contract that composes all functionality
+- `ArtVaultOracleMock.sol` – Simulates oracle-based auto-release based on timestamps
 
-## **How It Works**
-1. **Client deposits funds** for an artist and sets the number of milestones.
-2. **Validator is assigned** to oversee project validation.
-3. **Project is validated** by the validator.
-4. **Milestone payments** are released progressively by the client.
-5. **Final payment & project completion** or **refund** if milestones are not met.
+## **Example Use Cases**
+- A **concert** ends → milestone auto-released via oracle  
+- An **artwork** is shipped → delivery confirmed triggers payment  
+- A **freelance gig** is manually validated by a trusted validator  
+
+## **Workflow**
+1. Client deposits ETH with milestones defined.
+2. Validator is assigned to the project.
+3. Validator validates the project.
+4. Milestones are released either:
+   - Manually by the client, or  
+   - Automatically by a trusted oracle (mocked for now).
+5. Refund possible **only if no milestone** has been paid.
 
 ## **Deployment & Testing**
 
-Contracts are modular, deployed in this order:
-1. `BaseContract.sol`
-2. `ValidationContract.sol`
-3. `EscrowContract.sol`
-4. `ArtVault.sol`
+All contracts are modular and tested via Foundry.
 
-For full test coverage, edge cases and gas profiling →  
-🧪 See [`README-tests.md`](README-tests.md)
+```bash
+forge test --gas-report
+See [`README-tests.md`](README-tests.md) for test & gas report.
 
-## **Security Measures**
-✔️ **ReentrancyGuard** – Prevents reentrancy attacks
-✔️ **Access Control** – Modifiers ensure only authorized users can perform actions
-✔️ **Fail-safe Transfers** – Uses call{value: amount} for ETH transfers
-✔️ **Milestone-based logic** – Funds are gradually released
+## Security Measures
 
+- `ReentrancyGuard` to protect fund transfers  
+- Strict `onlyClient` / `onlyValidator` access controls  
+- Clear state transitions and revert messages  
+- Oracle calls do not bypass validation
 
+## Technology Stack
 
-## **Technology Stack**
-- Solidity `^0.8.19`
-- OpenZeppelin Security Libraries
-- Hardhat (for testing & deployment)
-- Milestone-based logic – Funds are gradually released
+- Solidity ^0.8.19  
+- OpenZeppelin contracts  
+- Foundry (forge)  
+- Modular inheritance for separation of concerns
 
+## Next Improvements
 
-## **Next Improvements**
-🔹 **Frontend DApp** – User interface for easy interaction  
-🔹 IPFS Integration – Decentralized storage for project files
-🔹 **Chainlink Integration** – Fetch real-time conversion rates for stablecoin payments  
-🔹 **Arbitration Smart Contract** – Mediation system for disputes  
-🔹 Multi-chain Deployment – Expanding ArtVault to Polygon & Arbitrum
+- Chainlink Oracle integration (off-chain event + Gelato automation)  
+- Arbitration logic module  
+- VaultFactory / VaultInstance pattern  
+- Multi-chain deployment (Polygon, Arbitrum)  
+- Minimal frontend (SealThisDeal-style) for IRL “deal sealing”
 
+## License
 
-## **License**
-This project is licensed under the **MIT License**.
+This project is licensed under the MIT License.
 
