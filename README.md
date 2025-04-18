@@ -4,74 +4,97 @@
 ![License](https://img.shields.io/github/license/HananeBendisari/ArtVault)
 ![Last Commit](https://img.shields.io/github/last-commit/HananeBendisari/ArtVault)
 
-# ArtVault - Decentralized Escrow for Creative Projects
+## ArtVault – Decentralized Escrow for Creative Projects
 
-## **Overview**
-ArtVault is a decentralized escrow system designed for **artists and clients**, ensuring secure milestone-based payments. This smart contract enables clients to deposit funds, validators to approve project milestones, and artists to receive payments progressively.
+**ArtVault** is a modular smart contract system for milestone-based payments between clients and artists.  
+It introduces **validator-based approval**, **automated releases via oracles**, and **dispute resolution**  
+in a fully tested, gas-efficient Solidity design.
 
-## **Features**
-✅ Escrow Mechanism – Funds are securely held until project validation  
-✅ Milestone-based Payments – Payments are released in stages  
-✅ Validator System – Third-party validation before fund release  
-✅ Refund Mechanism – Clients can get refunded if the project is not completed  
-✅ Secure Transactions – Uses `ReentrancyGuard` to prevent exploits  
-✅ Oracle Integration (Mocked) – Automate payments after off-chain events (e.g. end of concert)  
+## Features
 
-## **Smart Contract Architecture**
-ArtVault is built using modular inheritance:
+- **Escrow Mechanism** – Funds are securely held until validation
+- **Milestone-based Payments** – Staged payment logic with strict controls
+- **Validator System** – Only assigned validator can approve project
+- **Refund System** – Refund only if no milestone released
+- **Oracle Integration (Mocked)** – Trigger release based on time/event
+- **Dispute Flagging** – Clients can flag disputes and track their status
+- **Modular Contracts** – Separation of concerns: Escrow / Validation / Oracle / Dispute
 
-- `BaseContract.sol` – Stores project data, events, and access control
-- `ValidationContract.sol` – Handles validator assignment and project validation
-- `EscrowContract.sol` – Manages deposits, milestone payouts, and refunds
-- `ArtVault.sol` – Main contract that composes all functionality
-- `ArtVaultOracleMock.sol` – Simulates oracle-based auto-release based on timestamps
+## Smart Contract Architecture
 
-## **Example Use Cases**
-- A **concert** ends → milestone auto-released via oracle  
-- An **artwork** is shipped → delivery confirmed triggers payment  
-- A **freelance gig** is manually validated by a trusted validator  
+ArtVault is built using modular inheritance to keep logic clean and extensible:
 
-## **Workflow**
-1. Client deposits ETH with milestones defined.
-2. Validator is assigned to the project.
-3. Validator validates the project.
-4. Milestones are released either:
-   - Manually by the client, or  
-   - Automatically by a trusted oracle (mocked for now).
-5. Refund possible **only if no milestone** has been paid.
+- `BaseContract.sol` – Stores project state, shared modifiers, and events
+- `ValidationContract.sol` – Handles validator assignment and validation flow
+- `EscrowContract.sol` – Manages deposits, milestone release, and refunds
+- `DisputeModule.sol` – Adds dispute registration with status enum
+- `ArtVault.sol` – Main contract that composes all modules above
+- `ArtVaultOracleMock.sol` – Mocked oracle that triggers milestone release based on timestamp
 
-## **Deployment & Testing**
+## Example Use Cases
 
-All contracts are modular and tested via Foundry.
+Real-world inspired milestone flows now supported:
+
+- **Live Performance**: Automatic payment release once the concert ends (based on timestamp)
+- **Physical Delivery**: Package tracked via delivery status (e.g. Purolator) → triggers milestone release
+- **Manual Validation**: Validator confirms delivery or project phase, allowing client to release funds
+- **Fallback Logic** *(planned)*: Auto-release if no validation after X days (using Chainlink + Gelato)
+- **Dispute Flow**: Clients can flag a dispute, status is tracked on-chain
+
+## Workflow
+
+1. **Client deposits ETH** and defines number of milestones.
+2. **Validator is assigned** to the project.
+3. **Validator validates** the project.
+4. **Milestones released**:
+   - Manually by the client  
+   - Or automatically via oracle trigger (e.g. after concert ends)
+5. **Refund possible**:
+   - Only if no milestone has been released
+6. **Dispute** can be opened by the client if issues arise.
+
+## Deployment & Testing
+
+All contracts are modular and tested using [Foundry](https://book.getfoundry.sh/).
+
+To run the full suite and generate a gas report:
 
 ```bash
 forge test --gas-report
-# See README-tests.md for full test & gas report.
 ```
+
+See [`README-tests.md`](README-tests.md) for:
+
+- Detailed gas usage table
+- Covered scenarios (happy path, reverts, refunds)
+- Fuzz tests for boundary logic
+- Oracle-triggered milestone automation
 
 ## Security Measures
 
-- `ReentrancyGuard` to protect fund transfers  
-- Strict `onlyClient` / `onlyValidator` access controls  
-- Clear state transitions and revert messages  
-- Oracle calls do not bypass validation
+- **ReentrancyGuard** to protect ETH transfers  
+- **Strict access control** via `onlyClient` and `onlyValidator` modifiers  
+- **Clear state transitions** with descriptive `require()` and `revert()` messages  
+- **Oracle-triggered releases** still obey validation and milestone constraints  
+- **Modular structure** to isolate and audit critical logic
 
 ## Technology Stack
 
-- Solidity ^0.8.19  
-- OpenZeppelin contracts  
-- Foundry (forge)  
-- Modular inheritance for separation of concerns
+- **Solidity** `^0.8.19`  
+- **Foundry (Forge)** – testing, fuzzing, CI  
+- **OpenZeppelin Contracts** – security primitives  
+- **Modular architecture** – separation of escrow, validation, oracle logic  
+- **Mock oracles** – for time/event-driven automation simulations  
 
 ## Next Improvements
 
-- Chainlink Oracle integration (off-chain event + Gelato automation)  
-- Arbitration logic module  
-- VaultFactory / VaultInstance pattern  
-- Multi-chain deployment (Polygon, Arbitrum)  
-- Minimal frontend (SealThisDeal-style) for IRL “deal sealing”
+- **Chainlink Oracle Integration** – connect real-world event tracking (e.g. end of performance)
+- **Arbitration Module** – enable dispute resolution with status + fallback
+- **Factory Pattern** – support multi-project deployments with upgradability
+- **Multi-chain Deployment** – expand to networks like Polygon and Arbitrum
+- **Minimal UI (SealThisDeal)** – 1-click milestone sealing for real-life gigs
 
 ## License
 
-This project is licensed under the MIT License.
+This project is licensed under the **MIT License**.
 
