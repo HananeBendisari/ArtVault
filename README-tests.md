@@ -4,56 +4,103 @@ This document summarizes the test coverage and gas performance for the ArtVault 
 
 ---
 
-## ✅ Test Coverage
+## Test Coverage
 
-**Total Tests:** 29  
+**Total Tests:** 32  
 **All Passed:** ✅  
 **Framework:** [Foundry](https://book.getfoundry.sh/)
 
 ### Covered Scenarios
 
-- Valid milestone flow
-- Invalid refunds (post-release)
-- Only client/validator can trigger actions
-- Expected reverts tested
--️ Mock Oracle auto-release
-- Milestone count and release enforcement
-- Full project lifecycle
+- **Milestone Payment Flow**  
+  Basic deposit → validation → milestone releases → final release.
+
+- **Refund Edge Cases**  
+  Refunds are allowed *only* before any milestone is released.  
+  - Revert if trying to refund after partial or full release.
+
+- **Access Control**  
+  - Only the **client** can assign validator, release milestone, or trigger refund.  
+  - Only the **validator** can validate the project.
+
+- **Expected Reverts**  
+  - Covers invalid calls, zero values, missing roles, and redundant actions.
+
+- **Oracle Simulation**  
+  - Mock contract simulates automatic release after off-chain event (Chainlink style).
+
+- **Milestone Enforcement**  
+  - Prevents overpayments (revert after all milestones paid).
+
+- **Full Project Lifecycle**  
+  - From deposit → validation → release → completion or dispute.
 
 ---
 
 ## Fuzzing & Automation
 
-Test files include fuzz tests such as:
-- `FuzzDeposit.t.sol` – invalid amounts / zero milestones
-- `FuzzReleaseMilestone.t.sol` – milestone loop, boundary tests
-- `FuzzHappyPath.t.sol` – full flow with validation + oracle
-- `ArtVaultOracleMock.t.sol` – oracle-triggered logic (time-sensitive)
+The test suite includes fuzz tests to simulate edge cases and verify robustness across multiple conditions:
+
+- **`FuzzDeposit.t.sol`**  
+  Fuzzes against invalid deposit scenarios (e.g. zero ETH, zero milestones, invalid artist).
+
+- **`FuzzReleaseMilestone.t.sol`**  
+  Tests milestone release across variable milestone counts and ensures correct payment and finalization logic.
+
+- **`FuzzHappyPath.t.sol`**  
+  Simulates the complete success flow: deposit → validator assignment → validation → milestone release → refund denial.
+
+- **`ArtVaultOracleMock.t.sol`**  
+  Simulates a Chainlink-style oracle triggering `releaseMilestone()` automatically once an off-chain event has passed (e.g., concert finished).
+
+Each test ensures logic consistency, state integrity, and revert safety under varied input values.
 
 ---
 
-### Gas Report (via `forge test --gas-report`)
-```bash
+## ⛽ Gas Usage Report
 
-| Function           | Min      | Avg      | Median   | Max      | Calls |
-|--------------------|----------|----------|----------|----------|-------|
-| `addValidator`     | 24,753   | 46,566   | 48,748   | 48,748   | 11    |
-| `depositFunds`     | 140,767  | 140,767  | 140,767  | 140,767  | 15    |
-| `getProject`       | 3,107    | 3,107    | 3,107    | 3,107    | 2     |
-| `projects`         | 2,677    | 2,677    | 2,677    | 2,677    | 6     |
-| `refundClient`     | 29,255   | 37,004   | 33,881   | 44,932   | 5     |
-| `releaseMilestone` | 29,481   | 68,534   | 55,803   | 97,903   | 13    |
-| `validateProject`  | 26,471   | 38,391   | 31,343   | 31,343   | 10    |
+The following report summarizes gas consumption from the latest test run:
 
-**Contract Deployment Cost**: `1,801,597` gas  
-**Contract Size**: `8069 bytes`
-```
+| Function             | Min Gas | Avg Gas | Max Gas | Calls |
+|----------------------|---------|---------|---------|-------|
+| `addValidator`       | 24,753  | 46,566  | 48,748  | 11    |
+| `depositFunds`       | 140,767 | 140,767 | 140,767 | 15    |
+| `getProject`         | 3,107   | 3,107   | 3,107   | 2     |
+| `projects`           | 2,677   | 2,677   | 2,677   | 6     |
+| `refundClient`       | 29,255  | 37,004  | 44,932  | 5     |
+| `releaseMilestone`   | 29,481  | 68,534  | 97,903  | 13    |
+| `validateProject`    | 26,471  | 38,391  | 38,391  | 10    |
+
+**Deployment Cost:** ~1,801,597 gas  
+**Contract Size:** 8069 bytes
+
+> 🔍 `releaseMilestone()` gas usage varies depending on milestone count and whether it's the final release.  
+> Overall, gas costs are reasonable for a modular, security-focused contract structure.
 
 ---
 
 ## Future Testing
-Advanced Dispute Resolution logic
 
-Multi-actor fuzzing (invalid validator assignments, invalid re-validation)
+Planned improvements and coverage extensions include:
 
-Integration with Chainlink & Gelato testnets
+- **Multiple Projects per Client**  
+  Ensure the system behaves correctly when a single client manages several parallel projects.
+
+- **Dispute Resolution Logic**  
+  Full test suite for the upcoming `DisputeModule`, including edge cases, state transitions, and unauthorized actions.
+
+- **Oracle & Automation**  
+  Simulate more advanced oracle triggers (e.g., Chainlink mock + Gelato-style automation) with time delays and off-chain signals.
+
+- **Cross-Network Consistency**  
+  Validate behavior on networks like Polygon and Arbitrum to catch potential EVM inconsistencies.
+
+- **Security Edge Cases**  
+  Fuzz and stress test for:
+  - Reentrancy under rare interleavings
+  - Malicious validators/clients
+  - Fallback scenarios (artist disappears, etc.)
+
+- **VaultFactory / VaultInstance Pattern**  
+  Future architecture will include multiple vault instances per user or per project type. Tests will simulate deployment and delegation flows.
+
