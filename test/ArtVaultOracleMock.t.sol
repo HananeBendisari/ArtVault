@@ -59,4 +59,5 @@ contract ArtVaultOracleMockTest is Test {
         assertTrue(released, "Project should be marked released");
         assertEq(milestonesPaid, 1, "Milestone should be paid");
     }
+
 }

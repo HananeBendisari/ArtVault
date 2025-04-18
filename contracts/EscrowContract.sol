@@ -116,4 +116,39 @@ contract EscrowContract is BaseContract, ReentrancyGuard {
         emit FundsRefunded(_projectId, client); //Refund marker
         emit ClientRefunded(_projectId, client, amount); //Refund details
     }
+
+    /**
+    * @dev Allows anyone (ex: oracle) to release a milestone if the event has ended.
+    *      The eventEndTimestamps must be set externally (mock or oracle).
+    * @param _projectId The ID of the project.
+    */
+    function releaseAfterEvent(uint256 _projectId) public nonReentrant projectExists(_projectId) {
+        Project storage project = projects[_projectId];
+
+        if (!project.validated) {
+            revert("Error: Project must be validated before releasing funds");
+        }
+
+        if (project.milestonesPaid >= project.milestoneCount) {
+            revert("Error: All milestones paid.");
+        }
+
+        // Optional: if you want to protect with a timestamp (mock logic)
+        // require(block.timestamp >= eventEndTimestamps[_projectId], "Event not finished");
+
+        uint256 milestoneAmount = project.amount / project.milestoneCount;
+        project.milestonesPaid++;
+
+        if (project.milestonesPaid == project.milestoneCount) {
+            project.released = true;
+        }
+
+        (bool success, ) = payable(project.artist).call{value: milestoneAmount}("");
+        require(success, "Transfer failed.");
+
+        emit MilestoneReleased(_projectId, project.milestonesPaid, milestoneAmount);
+        if (project.released) {
+            emit FundsReleased(_projectId, project.artist, project.amount);
+        }
+    }
 }

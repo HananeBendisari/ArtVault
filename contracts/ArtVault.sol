@@ -4,13 +4,15 @@ pragma solidity ^0.8.19;
 import "./BaseContract.sol";
 import "./EscrowContract.sol";
 import "./ValidationContract.sol";
+import "./DisputeModule.sol";
+
 
 /**
  * @title ArtVault
  * @dev Main contract that composes escrow and validation functionalities.
  * Inherits storage and logic from BaseContract, EscrowContract, and ValidationContract.
  */
-contract ArtVault is BaseContract, EscrowContract, ValidationContract {
+contract ArtVault is BaseContract, EscrowContract, ValidationContract, DisputeModule {
     /**
      * @notice Manually creates an empty project (used only for testing).
      * @dev Only for test purposes. Sets up an empty project without funds.
