@@ -5,21 +5,19 @@ import "./BaseContract.sol";
 import "./EscrowContract.sol";
 import "./ValidationContract.sol";
 import "./DisputeModule.sol";
-
+import "./IOracle.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 
 /**
  * @title ArtVault
  * @dev Main contract that composes escrow and validation functionalities.
- * Inherits storage and logic from BaseContract, EscrowContract, and ValidationContract.
  */
-contract ArtVault is BaseContract, EscrowContract, ValidationContract, DisputeModule {
-    /**
-     * @notice Manually creates an empty project (used only for testing).
-     * @dev Only for test purposes. Sets up an empty project without funds.
-     * @param _projectId The ID of the new project.
-     * @param _artist The address of the artist.
-     * @param _milestoneCount Number of milestones to configure.
-     */
+contract ArtVault is Ownable, BaseContract, EscrowContract, ValidationContract, DisputeModule {
+    IOracle internal _oracleOverride; // Used for test overrides
+    IOracle public oracle;            // Used in production
+
+    constructor() Ownable(msg.sender) {}
+
     function createProject(
         uint256 _projectId,
         address payable _artist,
@@ -39,5 +37,20 @@ contract ArtVault is BaseContract, EscrowContract, ValidationContract, DisputeMo
         });
 
         projectCount++;
+    }
+
+    function setOracle(address _oracle) external onlyOwner {
+        oracle = IOracle(_oracle);
+    }
+
+    function setOracleOverride(IOracle o) external virtual {
+        _oracleOverride = o;
+    }
+
+    function getOracle() public view virtual override returns (IOracle) {
+        if (address(_oracleOverride) != address(0)) {
+            return _oracleOverride;
+        }
+        return oracle;
     }
 }

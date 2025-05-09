@@ -16,7 +16,7 @@ in a fully tested, gas-efficient Solidity design.
 - **Milestone-based Payments** – Staged payment logic with strict controls
 - **Validator System** – Only assigned validator can approve project
 - **Refund System** – Refund only if no milestone released
-- **Oracle Integration (Mocked)** – Trigger release based on time/event
+- **Oracle-Gated Releases (Mocked)** – Milestone release gated by price thresholds (e.g. ETH > $1000), using overrideable oracle logic
 - **Dispute Flagging** – Clients can flag disputes and track their status
 - **Modular Contracts** – Separation of concerns: Escrow / Validation / Oracle / Dispute
 
@@ -69,6 +69,7 @@ See [`README-tests.md`](README-tests.md) for:
 - Covered scenarios (happy path, reverts, refunds)
 - Fuzz tests for boundary logic
 - Oracle-triggered milestone automation
+> ℹ️ Oracle behavior is tested via injection (override pattern), with real mock contracts in Foundry.
 
 ## Security Measures
 
@@ -93,6 +94,7 @@ See [`README-tests.md`](README-tests.md) for:
 - **Factory Pattern** – support multi-project deployments with upgradability
 - **Multi-chain Deployment** – expand to networks like Polygon and Arbitrum
 - **Minimal UI (SealThisDeal)** – 1-click milestone sealing for real-life gigs
+- **Fuzz Test Stabilization** – Fix failing fuzz tests due to missing oracle mocks and improve test setup injection
 
 ## License
 

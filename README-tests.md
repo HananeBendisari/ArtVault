@@ -35,6 +35,10 @@ This document summarizes the test coverage and gas performance for the ArtVault 
 - **Full Project Lifecycle**  
   - From deposit → validation → release → completion or dispute.
 
+- **Oracle-Gated Milestone Releases**  
+  Milestone payments are now gated by a price threshold using a mocked oracle.  
+  The test suite includes override injection to simulate oracle behavior cleanly.
+
 ---
 
 ## Fuzzing & Automation
@@ -52,6 +56,9 @@ The test suite includes fuzz tests to simulate edge cases and verify robustness 
 
 - **`ArtVaultOracleMock.t.sol`**  
   Simulates a Chainlink-style oracle triggering `releaseMilestone()` automatically once an off-chain event has passed (e.g., concert finished).
+
+> ⚠️ Some fuzz tests currently fail due to missing oracle setup or expected reverts during invalid flows.  
+> These are tracked and will be addressed in a follow-up testing cycle.
 
 Each test ensures logic consistency, state integrity, and revert safety under varied input values.
 
@@ -100,6 +107,9 @@ Planned improvements and coverage extensions include:
   - Reentrancy under rare interleavings
   - Malicious validators/clients
   - Fallback scenarios (artist disappears, etc.)
+
+- **Fuzz Test Oracle Injection**
+  Fix failing fuzz tests by mocking oracle return values dynamically within fuzzed flows.
 
 - **VaultFactory / VaultInstance Pattern**  
   Future architecture will include multiple vault instances per user or per project type. Tests will simulate deployment and delegation flows.

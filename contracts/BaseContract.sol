@@ -1,6 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
+import "./IOracle.sol";
+
+
 /**
  * @title BaseContract
  * @dev Stores the project structure, events, and basic modifiers.
@@ -85,6 +88,11 @@ contract BaseContract {
             p.milestonesPaid
         );
     }
+    
+    function getOracle() public view virtual returns (IOracle) {
+        return IOracle(address(0));
+    }
+
 
     
 

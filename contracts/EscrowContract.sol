@@ -3,6 +3,8 @@ pragma solidity ^0.8.19;
 
 import "./BaseContract.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import "./IOracle.sol";
+
 
 /**
  * @title EscrowContract
@@ -19,6 +21,7 @@ contract EscrowContract is BaseContract, ReentrancyGuard {
         require(_artist != address(0), "Invalid artist address");                  // ❗ Prevent null artist
         require(msg.value > 0, "Amount must be > 0");                              // ❗ Must send ETH
         require(_milestoneCount > 0, "Milestone count must be greater than zero"); // ❗ At least one milestone
+       
 
         uint256 newProjectId = projectCount;
 
@@ -46,9 +49,12 @@ contract EscrowContract is BaseContract, ReentrancyGuard {
      */
     function releaseMilestone(uint256 _projectId)
         public
+        virtual
         nonReentrant
         projectExists(_projectId)
     {
+        require(getOracle().getLatestPrice() >= 1000, "Price too low");
+
         Project storage project = projects[_projectId];
 
         if (!project.validated) {
@@ -58,6 +64,10 @@ contract EscrowContract is BaseContract, ReentrancyGuard {
         if (project.milestonesPaid >= project.milestoneCount) {
             revert("Error: All milestones paid."); // ❌ Already released everything
         }
+
+        uint256 price = getOracle().getLatestPrice();
+        require(price >= 1000, "Price too low");
+
 
         //Calculate amount per milestone
         uint256 milestoneAmount = project.amount / project.milestoneCount;
