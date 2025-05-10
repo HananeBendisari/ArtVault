@@ -16,7 +16,7 @@ in a fully tested, gas-efficient Solidity design.
 - **Milestone-based Payments** – Staged payment logic with strict controls
 - **Validator System** – Only assigned validator can approve project
 - **Refund System** – Refund only if no milestone released
-- **Oracle-Gated Releases (Mocked)** – Milestone release gated by price thresholds (e.g. ETH > $1000), using overrideable oracle logic
+- **Oracle-Gated Releases (Mocked)** – Milestone release gated by price or event-based conditions (e.g. ETH > $1000 or concert end timestamp), using overrideable oracle logic
 - **Dispute Flagging** – Clients can flag disputes and track their status
 - **Modular Contracts** – Separation of concerns: Escrow / Validation / Oracle / Dispute
 
@@ -29,7 +29,7 @@ ArtVault is built using modular inheritance to keep logic clean and extensible:
 - `EscrowContract.sol` – Manages deposits, milestone release, and refunds
 - `DisputeModule.sol` – Adds dispute registration with status enum
 - `ArtVault.sol` – Main contract that composes all modules above
-- `ArtVaultOracleMock.sol` – Mocked oracle that triggers milestone release based on timestamp
+- `ArtVaultOracleMock.sol` – Mocked oracle for time-based triggers (e.g., concert ends)
 
 ## Example Use Cases
 
@@ -70,6 +70,10 @@ See [`README-tests.md`](README-tests.md) for:
 - Fuzz tests for boundary logic
 - Oracle-triggered milestone automation
 > ℹ️ Oracle behavior is tested via injection (override pattern), with real mock contracts in Foundry.
+
+New: timestamp-based oracles are now tested through override injection.  
+Tests include both "too early" and "post-deadline" scenarios, using a mock simulating Chainlink-style automation.
+
 
 ## Security Measures
 

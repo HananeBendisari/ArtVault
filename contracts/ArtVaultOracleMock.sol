@@ -2,12 +2,13 @@
 pragma solidity ^0.8.19;
 
 import "./ArtVault.sol";
+import "./IOracle.sol";
 
 /**
  * @title ArtVaultOracleMock
  * @dev Mock oracle to simulate automated milestone release based on event end timestamp.
  */
-contract ArtVaultOracleMock {
+contract ArtVaultOracleMock is IOracle {
     ArtVault public vault;
     mapping(uint256 => uint256) public eventEndTimestamps; // projectId => timestamp
 
@@ -27,6 +28,13 @@ contract ArtVaultOracleMock {
      */
     function checkAndTrigger(uint256 _projectId) external {
         require(block.timestamp >= eventEndTimestamps[_projectId], "Too early");
-        vault.releaseMilestone(_projectId); // simulate auto-release
+        vault.releaseMilestone(_projectId);
+    }
+
+    /**
+     * @dev Mock price function to comply with IOracle.
+     */
+    function getLatestPrice() external view override returns (uint256) {
+        return 2000; // dummy value to pass require(price >= X)
     }
 }

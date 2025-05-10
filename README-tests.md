@@ -6,7 +6,7 @@ This document summarizes the test coverage and gas performance for the ArtVault 
 
 ## Test Coverage
 
-**Total Tests:** 32  
+**Total Tests:** 33  
 **All Passed:** ✅  
 **Framework:** [Foundry](https://book.getfoundry.sh/)
 
@@ -38,6 +38,7 @@ This document summarizes the test coverage and gas performance for the ArtVault 
 - **Oracle-Gated Milestone Releases**  
   Milestone payments are now gated by a price threshold using a mocked oracle.  
   The test suite includes override injection to simulate oracle behavior cleanly.
+  Includes both price-based (MockOracle) and time-based (ArtVaultOracleMock) oracles, using override injection for deterministic logic.
 
 ---
 
@@ -70,20 +71,19 @@ The following report summarizes gas consumption from the latest test run:
 
 | Function             | Min Gas | Avg Gas | Max Gas | Calls |
 |----------------------|---------|---------|---------|-------|
-| `addValidator`       | 24,753  | 46,566  | 48,748  | 11    |
-| `depositFunds`       | 140,767 | 140,767 | 140,767 | 15    |
-| `getProject`         | 3,107   | 3,107   | 3,107   | 2     |
-| `projects`           | 2,677   | 2,677   | 2,677   | 6     |
-| `refundClient`       | 29,255  | 37,004  | 44,932  | 5     |
-| `releaseMilestone`   | 29,481  | 68,534  | 97,903  | 13    |
-| `validateProject`    | 26,471  | 38,391  | 38,391  | 10    |
+| `addValidator`       | 24,778  | 48,685  | 48,774  | 271   |
+| `depositFunds`       | 22,318  | 81,742  | 140,813 | 521   |
+| `getProject`         | 3,130   | 3,130   | 3,130   | 259   |
+| `projects`           | 2,701   | 2,701   | 2,701   | 4     |
+| `refundClient`       | 29,572  | 35,904  | 45,111  | 7     |
+| `releaseMilestone`   | 24,234  | 77,959  | 104,212 | 587   |
+| `validateProject`    | 26,518  | 31,641  | 31,679  | 270   |
 
-**Deployment Cost:** ~1,801,597 gas  
-**Contract Size:** 8069 bytes
+**Deployment Cost:** ~3,375,090 gas 
+**Contract Size:** 15869 bytes
 
-> 🔍 `releaseMilestone()` gas usage varies depending on milestone count and whether it's the final release.  
-> Overall, gas costs are reasonable for a modular, security-focused contract structure.
-
+> 🔍 `releaseMilestone()` gas usage varies depending on milestone count and oracle override state.  
+> The overall structure remains modular and gas-conscious, despite security checks and automation hooks.
 ---
 
 ## Future Testing
