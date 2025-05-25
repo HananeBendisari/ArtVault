@@ -18,12 +18,12 @@ import {ISignatureModule} from "./interfaces/ISignatureModule.sol";
 
 /**
  * @title ArtVault
- * @dev Main contract that composes escrow and validation functionalities.
- * Supports optional modular rule engines (Forte, Fallback, Signature).
+ * @dev Escrow contract for milestone-based payments, with modular rule engine integration.
+ * Core business logic is inherited; optional enforcement logic is injected via external modules.
  */
 contract ArtVault is Ownable, BaseContract, EscrowContract, ValidationContract, DisputeModule {
     
-    // Optional rule modules (settable externally)
+    // External modules injected at runtime (can be mocks or real rules)
     IForteRules public forteRules;
     IFallbackModule public fallbackModule;
     ISignatureModule public signatureModule;
@@ -32,20 +32,21 @@ contract ArtVault is Ownable, BaseContract, EscrowContract, ValidationContract, 
     IOracle internal _oracleOverride; // Used for test overrides
     IOracle public oracle;            // Used in production
 
-    // Per-project configuration for rule modules
+    // Project-level configuration: enables or disables rule enforcement per project
     struct ProjectConfig {
         bool useForteRules;
         bool useFallback;
         bool useSignature;
     }
 
+    // Mapping of projectId => ProjectConfig
     mapping(uint256 => ProjectConfig) public projectConfigs;
 
     constructor() Ownable(msg.sender) {}
 
     /**
-     * @dev Create a new project with a given artist and number of milestones.
-     * Callable by the client only.
+     * @dev Creates a new project with artist and number of milestones.
+     * Callable by the client only (enforced externally).
      */
     function createProject(
         uint256 _projectId,
@@ -69,8 +70,8 @@ contract ArtVault is Ownable, BaseContract, EscrowContract, ValidationContract, 
     }
 
     /**
-     * @dev Set rule usage config for a project (ForteRules, Fallback, Signature).
-     * Callable only by the client who owns the project.
+     * @dev Sets the rule configuration for a project.
+     * Only the original client is allowed to change this configuration.
      */
     function setProjectConfig(
         uint256 _projectId,
@@ -88,21 +89,42 @@ contract ArtVault is Ownable, BaseContract, EscrowContract, ValidationContract, 
     }
 
     /**
-     * @dev Set production oracle.
+     * @dev Injects the ForteRules module contract.
+     */
+    function setForteRulesModule(address _addr) external {
+        forteRules = IForteRules(_addr);
+    }
+
+    /**
+     * @dev Injects the Fallback module contract.
+     */
+    function setFallbackModule(address _addr) external {
+        fallbackModule = IFallbackModule(_addr);
+    }
+
+    /**
+     * @dev Injects the Signature module contract.
+     */
+    function setSignatureModule(address _addr) external {
+        signatureModule = ISignatureModule(_addr);
+    }
+
+    /**
+     * @dev Sets the production oracle.
      */
     function setOracle(address _oracle) external onlyOwner {
         oracle = IOracle(_oracle);
     }
 
     /**
-     * @dev Set oracle override for testing.
+     * @dev Overrides the oracle (used for testing).
      */
     function setOracleOverride(IOracle o) external virtual {
         _oracleOverride = o;
     }
 
     /**
-     * @dev Return the active oracle (test or prod).
+     * @dev Returns the active oracle (test override takes priority).
      */
     function getOracle() public view virtual override returns (IOracle) {
         if (address(_oracleOverride) != address(0)) {
@@ -112,23 +134,53 @@ contract ArtVault is Ownable, BaseContract, EscrowContract, ValidationContract, 
     }
 
     /**
-     * @dev Inject ForteRules module.
+     * @dev Releases the next milestone for a project.
+     * Incorporates external rules (if enabled) before allowing release.
      */
-    function setForteRulesModule(address _addr) external {
-        forteRules = IForteRules(_addr);
-    }
+    function releaseMilestone(uint256 projectId) public virtual override {
+        // Load rule configuration for the project
+        ProjectConfig memory config = projectConfigs[projectId];
 
-    /**
-     * @dev Inject Fallback module.
-     */
-    function setFallbackModule(address _addr) external {
-        fallbackModule = IFallbackModule(_addr);
-    }
+        uint256 milestoneId = projects[projectId].milestonesPaid;
 
-    /**
-     * @dev Inject Signature module.
-     */
-    function setSignatureModule(address _addr) external {
-        signatureModule = ISignatureModule(_addr);
+        // ForteRules check (e.g. oracleDelivered == true, isFraud == false, etc.)
+        if (config.useForteRules) {
+            require(
+                address(forteRules) != address(0),
+                "ForteRules module not set"
+            );
+            require(
+                forteRules.canRelease(projectId, milestoneId),
+                "Release blocked by Forte rules"
+            );
+        }
+
+        // Fallback release logic (e.g. delay exceeded)
+        if (config.useFallback) {
+            require(
+                address(fallbackModule) != address(0),
+                "Fallback module not set"
+            );
+            require(
+                fallbackModule.isFallbackReady(projectId, milestoneId),
+                "Fallback condition not met"
+            );
+        }
+
+        // Double-signature confirmation logic
+        if (config.useSignature) {
+            require(
+                address(signatureModule) != address(0),
+                "Signature module not set"
+            );
+            require(
+                signatureModule.isDoubleConfirmed(projectId, milestoneId),
+                "Both client and artist must confirm"
+            );
+        }
+
+        // Core release logic (unchanged from EscrowContract)
+        _executeRelease(projectId);
+
     }
 }

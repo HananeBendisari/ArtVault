@@ -15,7 +15,7 @@ contract TestVaultWithOracleOverride is ArtVault {
         return super.getOracle();
     }
 
-    function releaseMilestone(uint256 _projectId) public override {
+    function releaseMilestone(uint256 _projectId) public override(ArtVault) {
         Project storage project = projects[_projectId];
 
         if (!project.validated) {

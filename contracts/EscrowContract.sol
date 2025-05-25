@@ -5,10 +5,10 @@ import "./BaseContract.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "./IOracle.sol";
 
-
 /**
  * @title EscrowContract
  * @dev Handles funds deposit, milestone releases, and refunds.
+ * This contract is meant to be inherited and extended by main products (ex: ArtVault).
  */
 contract EscrowContract is BaseContract, ReentrancyGuard {
 
@@ -18,14 +18,13 @@ contract EscrowContract is BaseContract, ReentrancyGuard {
      * @param _milestoneCount Number of milestones to split the payment into.
      */
     function depositFunds(address _artist, uint256 _milestoneCount) external payable {
-        require(_artist != address(0), "Invalid artist address");                  // ❗ Prevent null artist
-        require(msg.value > 0, "Amount must be > 0");                              // ❗ Must send ETH
-        require(_milestoneCount > 0, "Milestone count must be greater than zero"); // ❗ At least one milestone
-       
+        require(_artist != address(0), "Invalid artist address");
+        require(msg.value > 0, "Amount must be > 0");
+        require(_milestoneCount > 0, "Milestone count must be greater than zero");
 
         uint256 newProjectId = projectCount;
 
-        //Create and store new project with provided details
+        // Create and store new project with provided details
         projects[newProjectId] = Project({
             client: msg.sender,
             artist: _artist,
@@ -37,55 +36,55 @@ contract EscrowContract is BaseContract, ReentrancyGuard {
             milestonesPaid: 0
         });
 
-        projectCount++; // ➕ Increment global counter
+        projectCount++; // Increment global counter
 
-        emit FundsDeposited(newProjectId, msg.sender, _artist, msg.value); // Notify deposit
+        emit FundsDeposited(newProjectId, msg.sender, _artist, msg.value);
     }
 
     /**
      * @dev Releases a milestone payment to the artist.
-     * Reverts if the project is not validated, already fully released, or all milestones are paid.
+     * Meant to be OVERRIDDEN by child contracts (ArtVault).
      * @param _projectId The ID of the project.
      */
     function releaseMilestone(uint256 _projectId)
         public
-        virtual
+        virtual   
         nonReentrant
         projectExists(_projectId)
+        onlyClient(_projectId)
     {
         require(getOracle().getLatestPrice() >= 1000, "Price too low");
 
         Project storage project = projects[_projectId];
 
         if (!project.validated) {
-            revert("Error: Project must be validated before releasing funds"); // ❌ Validation required
+            revert("Error: Project must be validated before releasing funds");
         }
 
         if (project.milestonesPaid >= project.milestoneCount) {
-            revert("Error: All milestones paid."); // ❌ Already released everything
+            revert("Error: All milestones paid.");
         }
 
         uint256 price = getOracle().getLatestPrice();
         require(price >= 1000, "Price too low");
 
-
-        //Calculate amount per milestone
+        // Calculate amount per milestone
         uint256 milestoneAmount = project.amount / project.milestoneCount;
-        project.milestonesPaid++; // ➕ Count as paid
+        project.milestonesPaid++;
 
-        //Mark as released if all milestones now paid
+        // Mark as released if all milestones now paid
         if (project.milestonesPaid == project.milestoneCount) {
             project.released = true;
         }
 
-        //Transfer milestone funds to artist
+        // Transfer milestone funds to artist
         (bool success, ) = payable(project.artist).call{value: milestoneAmount}("");
-        require(success, "Transfer failed."); // ❗ Safety check
+        require(success, "Transfer failed.");
 
-        emit MilestoneReleased(_projectId, project.milestonesPaid, milestoneAmount); // Log event
+        emit MilestoneReleased(_projectId, project.milestonesPaid, milestoneAmount);
 
         if (project.released) {
-            emit FundsReleased(_projectId, project.artist, project.amount); // Final release
+            emit FundsReleased(_projectId, project.artist, project.amount);
         }
     }
 
@@ -101,36 +100,34 @@ contract EscrowContract is BaseContract, ReentrancyGuard {
     {
         Project storage project = projects[_projectId];
 
-        // ❌ Fully released → refund forbidden
+        // Fully released → refund forbidden
         if (project.released) {
             revert("Error: Cannot refund after full release");
         }
 
-        // ❌ Partially released → refund forbidden
+        // Partially released → refund forbidden
         if (project.milestonesPaid > 0) {
             revert("Error: Cannot refund after partial release");
         }
 
-        // ❌ No funds left
         require(project.amount > 0, "Error: No funds to refund.");
 
         uint256 amount = project.amount;
         address client = project.client;
 
-        project.amount = 0; // 🧹 Wipe funds from record
+        project.amount = 0; // Wipe funds from record
 
-        //Send refund
+        // Send refund
         (bool success, ) = payable(client).call{value: amount}("");
-        require(success, "Transfer failed."); // ❗ Secure send
+        require(success, "Transfer failed.");
 
-        emit FundsRefunded(_projectId, client); //Refund marker
-        emit ClientRefunded(_projectId, client, amount); //Refund details
+        emit FundsRefunded(_projectId, client);
+        emit ClientRefunded(_projectId, client, amount);
     }
 
     /**
     * @dev Allows anyone (ex: oracle) to release a milestone if the event has ended.
-    *      The eventEndTimestamps must be set externally (mock or oracle).
-    * @param _projectId The ID of the project.
+    * The eventEndTimestamps must be set externally (mock or oracle).
     */
     function releaseAfterEvent(uint256 _projectId) public nonReentrant projectExists(_projectId) {
         Project storage project = projects[_projectId];
@@ -145,6 +142,41 @@ contract EscrowContract is BaseContract, ReentrancyGuard {
 
         // Optional: if you want to protect with a timestamp (mock logic)
         // require(block.timestamp >= eventEndTimestamps[_projectId], "Event not finished");
+
+        uint256 milestoneAmount = project.amount / project.milestoneCount;
+        project.milestonesPaid++;
+
+        if (project.milestonesPaid == project.milestoneCount) {
+            project.released = true;
+        }
+
+        (bool success, ) = payable(project.artist).call{value: milestoneAmount}("");
+        require(success, "Transfer failed.");
+
+        emit MilestoneReleased(_projectId, project.milestonesPaid, milestoneAmount);
+        if (project.released) {
+            emit FundsReleased(_projectId, project.artist, project.amount);
+        }
+    }
+
+    /**
+     * @dev Internal extraction of the real logic for milestone release.
+     * Called by overriden releaseMilestone in child contracts (ArtVault).
+     * Pattern: checks custom (modules) en haut, puis _executeRelease() à la fin.
+     */
+    function _executeRelease(uint256 _projectId) internal {
+        Project storage project = projects[_projectId];
+
+        if (!project.validated) {
+            revert("Error: Project must be validated before releasing funds");
+        }
+
+        if (project.milestonesPaid >= project.milestoneCount) {
+            revert("Error: All milestones paid.");
+        }
+
+        uint256 price = getOracle().getLatestPrice();
+        require(price >= 1000, "Price too low");
 
         uint256 milestoneAmount = project.amount / project.milestoneCount;
         project.milestonesPaid++;
