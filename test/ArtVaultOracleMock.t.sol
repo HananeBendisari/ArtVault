@@ -48,25 +48,31 @@ contract ArtVaultOracleMockTest is Test {
     }
 
     function testTriggersAfterEndTime() public {
-        // Step 1: Client deposits and assigns a validator
-        vm.startPrank(client);
-        vault.depositFunds{value: 1 ether}(artist, 1);
+        vm.prank(client);
+        vault.depositFunds{value: 3 ether}(artist, 3);
+        vm.prank(client);
         vault.addValidator(0, validator);
-        vm.stopPrank();
 
-        // Step 2: Validator validates the project
+        // Enable oracle module
+        vm.prank(client);
+        vault.setProjectConfig(0, true, false, false);
+
         vm.prank(validator);
         vault.validateProject(0);
 
-        // Step 3: Set event time in the past (event has ended)
-        oracle.setEventEndTime(0, block.timestamp - 1);
+        vm.warp(block.timestamp + 2001);
 
-        // Step 4: Trigger the oracle-based release
+        // First verify that only client can release manually
+        vm.prank(address(0xBEEF));
+        vm.expectRevert("Error: Only the client can perform this action.");
+        vault.releaseMilestone(0);
+
+        // Now verify that oracle can trigger release automatically
+        oracle.setEventEndTime(0, block.timestamp); // simulate that it's the right time
         oracle.checkAndTrigger(0);
 
-        // Step 5: Assert that milestone is paid and project marked as released
-        (, , , bool released, , , , uint256 milestonesPaid) = vault.getProject(0);
-        assertTrue(released, "Project should be marked released");
-        assertEq(milestonesPaid, 1, "Milestone should be paid");
+        // Verify milestone was released
+        (,,, , , , , uint256 paid) = vault.getProject(0);
+        assertEq(paid, 1, "Milestone should be released after oracle triggers");
     }
 }

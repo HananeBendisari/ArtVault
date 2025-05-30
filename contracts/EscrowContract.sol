@@ -17,7 +17,7 @@ contract EscrowContract is BaseContract, ReentrancyGuard {
      * @param _artist The address of the artist.
      * @param _milestoneCount Number of milestones to split the payment into.
      */
-    function depositFunds(address _artist, uint256 _milestoneCount) external payable {
+    function depositFunds(address _artist, uint256 _milestoneCount) external payable virtual {
         require(_artist != address(0), "Invalid artist address");
         require(msg.value > 0, "Amount must be > 0");
         require(_milestoneCount > 0, "Milestone count must be greater than zero");
@@ -48,42 +48,35 @@ contract EscrowContract is BaseContract, ReentrancyGuard {
      */
     function releaseMilestone(uint256 _projectId)
         public
-        virtual   
+        virtual
         nonReentrant
         projectExists(_projectId)
         onlyClient(_projectId)
     {
-        require(getOracle().getLatestPrice() >= 1000, "Price too low");
-
         Project storage project = projects[_projectId];
 
-        if (!project.validated) {
-            revert("Error: Project must be validated before releasing funds");
-        }
-
-        if (project.milestonesPaid >= project.milestoneCount) {
-            revert("Error: All milestones paid.");
-        }
+        require(project.validated, "Error: Project must be validated before releasing funds");
+        require(project.milestonesPaid < project.milestoneCount, "Error: All milestones paid.");
 
         uint256 price = getOracle().getLatestPrice();
         require(price >= 1000, "Price too low");
 
-        // Calculate amount per milestone
         uint256 milestoneAmount = project.amount / project.milestoneCount;
         project.milestonesPaid++;
 
-        // Mark as released if all milestones now paid
-        if (project.milestonesPaid == project.milestoneCount) {
+        // Check if this is the final milestone
+        bool isFinalMilestone = project.milestonesPaid == project.milestoneCount;
+        if (isFinalMilestone) {
             project.released = true;
         }
 
-        // Transfer milestone funds to artist
+        // Execute transfer
         (bool success, ) = payable(project.artist).call{value: milestoneAmount}("");
-        require(success, "Transfer failed.");
+        require(success, "Transfer failed");
 
+        // Emit events in the correct order
         emit MilestoneReleased(_projectId, project.milestonesPaid, milestoneAmount);
-
-        if (project.released) {
+        if (isFinalMilestone) {
             emit FundsReleased(_projectId, project.artist, project.amount);
         }
     }
@@ -100,29 +93,20 @@ contract EscrowContract is BaseContract, ReentrancyGuard {
     {
         Project storage project = projects[_projectId];
 
-        // Fully released → refund forbidden
-        if (project.released) {
-            revert("Error: Cannot refund after full release");
-        }
-
-        // Partially released → refund forbidden
-        if (project.milestonesPaid > 0) {
-            revert("Error: Cannot refund after partial release");
-        }
-
-        require(project.amount > 0, "Error: No funds to refund.");
+        require(!project.released, "Error: Cannot refund after full release");
+        require(project.milestonesPaid == 0, "Error: Cannot refund after partial release");
+        require(project.amount > 0, "Error: No funds to refund");
 
         uint256 amount = project.amount;
         address client = project.client;
 
-        project.amount = 0; // Wipe funds from record
-
-        // Send refund
-        (bool success, ) = payable(client).call{value: amount}("");
-        require(success, "Transfer failed.");
+        project.amount = 0;
 
         emit FundsRefunded(_projectId, client);
         emit ClientRefunded(_projectId, client, amount);
+
+        (bool success, ) = payable(client).call{value: amount}("");
+        require(success, "Transfer failed");
     }
 
     /**
@@ -132,29 +116,25 @@ contract EscrowContract is BaseContract, ReentrancyGuard {
     function releaseAfterEvent(uint256 _projectId) public nonReentrant projectExists(_projectId) {
         Project storage project = projects[_projectId];
 
-        if (!project.validated) {
-            revert("Error: Project must be validated before releasing funds");
-        }
-
-        if (project.milestonesPaid >= project.milestoneCount) {
-            revert("Error: All milestones paid.");
-        }
-
-        // Optional: if you want to protect with a timestamp (mock logic)
-        // require(block.timestamp >= eventEndTimestamps[_projectId], "Event not finished");
+        require(project.validated, "Error: Project must be validated before releasing funds");
+        require(project.milestonesPaid < project.milestoneCount, "Error: All milestones paid.");
 
         uint256 milestoneAmount = project.amount / project.milestoneCount;
         project.milestonesPaid++;
 
-        if (project.milestonesPaid == project.milestoneCount) {
+        // Check if this is the final milestone
+        bool isFinalMilestone = project.milestonesPaid == project.milestoneCount;
+        if (isFinalMilestone) {
             project.released = true;
         }
 
+        // Execute transfer
         (bool success, ) = payable(project.artist).call{value: milestoneAmount}("");
-        require(success, "Transfer failed.");
+        require(success, "Transfer failed");
 
+        // Emit events in the correct order
         emit MilestoneReleased(_projectId, project.milestonesPaid, milestoneAmount);
-        if (project.released) {
+        if (isFinalMilestone) {
             emit FundsReleased(_projectId, project.artist, project.amount);
         }
     }

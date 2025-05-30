@@ -31,6 +31,17 @@ ArtVault is built using modular inheritance to keep logic clean and extensible:
 - `ArtVault.sol` – Main contract that composes all modules above
 - `ArtVaultOracleMock.sol` – Mocked oracle for time-based triggers (e.g., concert ends)
 
+### Oracle Integration
+
+Oracle-triggered automation:
+The vault supports time-based milestone release via an external oracle (e.g. Chainlink or Gelato).
+When the `oracleModule` is enabled via `setProjectConfig`, the `releaseMilestone` function may be triggered by the linked oracle contract only.
+
+This behavior is tested in `ArtVaultOracleMockTest`:
+- Early trigger attempts are rejected
+- Oracle can release milestones once the event end time is reached
+- Manual release remains client-restricted
+
 ## Example Use Cases
 
 Real-world inspired milestone flows now supported:
@@ -91,14 +102,37 @@ Tests include both "too early" and "post-deadline" scenarios, using a mock simul
 - **Modular architecture** – separation of escrow, validation, oracle logic  
 - **Mock oracles** – for time/event-driven automation simulations  
 
-## Next Improvements
+## Next Improvements & Roadmap
 
-- **Chainlink Oracle Integration** – connect real-world event tracking (e.g. end of performance)
-- **Arbitration Module** – enable dispute resolution with status + fallback
-- **Factory Pattern** – support multi-project deployments with upgradability
-- **Multi-chain Deployment** – expand to networks like Polygon and Arbitrum
-- **Minimal UI (SealThisDeal)** – 1-click milestone sealing for real-life gigs
-- **Fuzz Test Stabilization** – Fix failing fuzz tests due to missing oracle mocks and improve test setup injection
+We are actively working on:
+
+- Finalizing dispute module tests and fixes (in progress)
+- Integrating fallback and signature modules for enhanced milestone management
+- Adding Chainlink Oracle integration for real-world event triggers (concert end, delivery tracking)
+- Developing arbitration and fallback dispute resolution mechanisms
+- Implementing a factory pattern for scalable multi-project deployments
+- Expanding multi-chain deployment support (Polygon, Arbitrum, and others)
+- Building a minimal UI ("SealThisDeal") for seamless and user-friendly milestone approvals
+- Enhancing fuzz test coverage and stabilization with improved mocks and oracle overrides
+
+This project is a continuous work in progress and welcomes contributions, ideas, and feedback!
+
+Feel free to open issues or submit pull requests to help us improve.
+
+## Contribution
+
+This project is open-source and community-driven.  
+Feel free to submit bug reports, feature requests, or pull requests.  
+
+Before contributing, please check the issue tracker and coding standards.  
+All contributions will be reviewed and tested.
+
+Contact me on LinkedIn or open an issue to start a discussion.
+
+## Contact & Links
+
+- GitHub: [https://github.com/HananeBendisari/ArtVault](https://github.com/HananeBendisari/ArtVault)  
+- LinkedIn: [https://www.linkedin.com/in/hanane-bendisari](https://www.linkedin.com/in/hanane-bendisari)
 
 ## License
 

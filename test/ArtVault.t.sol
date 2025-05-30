@@ -115,9 +115,9 @@ contract ArtVaultTest is Test {
     /// @dev Only the client can assign the validator
     function testOnlyClientCanAssignValidator() public {
         vm.prank(client);
-        vault.depositFunds{value: 1 ether}(artist, 1);
+        vault.depositFunds{value: 3 ether}(artist, 3);
 
-        vm.prank(address(42));
+        vm.prank(address(0xBEEF));
         vm.expectRevert("Error: Only the client can perform this action.");
         vault.addValidator(0, validator);
     }
@@ -139,11 +139,11 @@ contract ArtVaultTest is Test {
     /// @dev A non-assigned validator cannot validate
     function testOnlyAssignedValidatorCanValidate() public {
         vm.prank(client);
-        vault.depositFunds{value: 1 ether}(artist, 1);
+        vault.depositFunds{value: 3 ether}(artist, 3);
         vm.prank(client);
         vault.addValidator(0, validator);
 
-        vm.prank(address(88));
+        vm.prank(address(0xBEEF));
         vm.expectRevert("Error: Only the assigned validator can perform this action.");
         vault.validateProject(0);
     }
@@ -184,9 +184,9 @@ contract ArtVaultTest is Test {
     /// @dev Only client can request a refund
     function testRefundFailsIfNotClient() public {
         vm.prank(client);
-        vault.depositFunds{value: 2 ether}(artist, 2);
+        vault.depositFunds{value: 3 ether}(artist, 3);
 
-        vm.prank(address(77));
+        vm.prank(address(0xBEEF));
         vm.expectRevert("Error: Only the client can perform this action.");
         vault.refundClient(0);
     }
@@ -225,21 +225,22 @@ contract ArtVaultTest is Test {
 
     /// @dev Cannot pay more milestones than declared
     function testCannotOverpayMilestones() public {
-        vm.prank(client);
-        vault.depositFunds{value: 3 ether}(artist, 3);
-        vm.prank(client);
-        vault.addValidator(0, validator);
+        vm.startPrank(client);
+        vault.depositFunds{value: 2 ether}(artist, 2);
+        uint256 projectId = vault.projectCount() - 1;
+        vault.addValidator(projectId, validator);
+        vm.stopPrank();
+
         vm.prank(validator);
-        vault.validateProject(0);
+        vault.validateProject(projectId);
 
-        for (uint256 i = 0; i < 3; i++) {
-            vm.prank(client);
-            vault.releaseMilestone(0);
-        }
+        vm.startPrank(client);
+        vault.releaseMilestone(projectId);
+        vault.releaseMilestone(projectId);
 
-        vm.prank(client);
-        vm.expectRevert("Error: All milestones paid.");
-        vault.releaseMilestone(0);
+        vm.expectRevert("Error: All milestones paid");
+        vault.releaseMilestone(projectId);
+        vm.stopPrank();
     }
 
     /// @dev Isolated test for price-gated release using mocked oracle

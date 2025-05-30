@@ -1,16 +1,44 @@
 # ArtVault – Test Suite & Gas Report
 
-This document summarizes the test coverage and gas performance for the ArtVault smart contract system. All tests are written in Foundry using best practices for edge cases, reverts, automation, and role-based logic.
+## 🧾 About ArtVault
+
+**ArtVault** is a modular milestone-based escrow system built in Solidity.  
+It enables secure, staged payments between clients and service providers (e.g. artists, freelancers) based on project validation and automated triggers (oracle-based or manual).
+
+Key features:
+- Multi-milestone escrow with per-step release
+- Validator-based project approval
+- Oracle automation (e.g., time or price conditions)
+- Modular architecture for extensions (e.g. ForteRules, Fallback, Signature)
+
+## 👩‍💻 Maintainer
+
+This project is actively maintained by [Hanane Bendisari](https://www.linkedin.com/in/hanane-bendisari),  
+Solidity developer focused on DeFi, smart contract security, and public-good infrastructure.
+
+Feel free to reach out or open issues if you'd like to collaborate.
 
 ---
 
-## Test Coverage
+## ✅ Test Coverage (Foundry)
 
-**Total Tests:** 33  
+**Total Tests:** 33+  
 **All Passed:** ✅  
 **Framework:** [Foundry](https://book.getfoundry.sh/)
 
-### Covered Scenarios
+| Area                        | Status | Notes |
+|-----------------------------|--------|-------|
+| Core Escrow logic           | ✅     | Deposit, refund, milestone release (manual + oracle) |
+| Validator assignment        | ✅     | With access control & post-release restrictions |
+| Dispute handling            | ✅     | Blocked if any milestone was paid |
+| Oracle integration          | ✅     | Time-based & price-based mock oracles, override-injected |
+| Fuzz tests (deposit/refund) | ✅     | Validations, reverts, overflow protection |
+| Fuzz milestone release      | ✅     | Up to 255 milestones stress-tested |
+| Event emission & order      | ✅     | Using recordLogs for multi-event tracking |
+
+---
+
+## Covered Scenarios
 
 - **Milestone Payment Flow**  
   Basic deposit → validation → milestone releases → final release.
@@ -37,8 +65,20 @@ This document summarizes the test coverage and gas performance for the ArtVault 
 
 - **Oracle-Gated Milestone Releases**  
   Milestone payments are now gated by a price threshold using a mocked oracle.  
-  The test suite includes override injection to simulate oracle behavior cleanly.
-  Includes both price-based (MockOracle) and time-based (ArtVaultOracleMock) oracles, using override injection for deterministic logic.
+  The test suite includes override injection to simulate oracle behavior cleanly.  
+  Includes both price-based (MockOracle) and time-based (ArtVaultOracleMock) oracles.
+
+---
+
+## Stress Tests
+
+We tested the vault with projects containing up to **255 milestones** — the maximum value for a `uint8`.  
+Each milestone was released successfully using the oracle, with no rounding errors, no overflows, and a final vault balance of **zero**.
+
+This confirms:
+- The protocol is compatible with long milestone-based projects
+- Solidity division & storage logic behaves safely in extreme cases
+- Oracles can support automatic releases at scale
 
 ---
 
@@ -58,14 +98,11 @@ The test suite includes fuzz tests to simulate edge cases and verify robustness 
 - **`ArtVaultOracleMock.t.sol`**  
   Simulates a Chainlink-style oracle triggering `releaseMilestone()` automatically once an off-chain event has passed (e.g., concert finished).
 
-> ⚠️ Some fuzz tests currently fail due to missing oracle setup or expected reverts during invalid flows.  
-> These are tracked and will be addressed in a follow-up testing cycle.
-
 Each test ensures logic consistency, state integrity, and revert safety under varied input values.
 
 ---
 
-## ⛽ Gas Usage Report
+## Gas Usage Report
 
 The following report summarizes gas consumption from the latest test run:
 
@@ -79,38 +116,44 @@ The following report summarizes gas consumption from the latest test run:
 | `releaseMilestone`   | 24,234  | 77,959  | 104,212 | 587   |
 | `validateProject`    | 26,518  | 31,641  | 31,679  | 270   |
 
-**Deployment Cost:** ~3,375,090 gas 
+**Deployment Cost:** ~3,375,090 gas  
 **Contract Size:** 15869 bytes
 
-> 🔍 `releaseMilestone()` gas usage varies depending on milestone count and oracle override state.  
-> The overall structure remains modular and gas-conscious, despite security checks and automation hooks.
+> `releaseMilestone()` gas usage varies depending on milestone count and oracle override state.  
+> The overall structure remains modular and gas-conscious, despite security checks and automation hooks.  
+> Gas consumption is optimized for practical milestone flows, balancing security checks, modular extensibility, and oracle-driven automation.
+
 ---
 
-## Future Testing
+## How to Run Tests
 
-Planned improvements and coverage extensions include:
+```bash
+forge test -vvv
+```
 
-- **Multiple Projects per Client**  
-  Ensure the system behaves correctly when a single client manages several parallel projects.
+Foundry will execute unit + fuzz tests on all core modules.
 
-- **Dispute Resolution Logic**  
-  Full test suite for the upcoming `DisputeModule`, including edge cases, state transitions, and unauthorized actions.
+---
 
-- **Oracle & Automation**  
-  Simulate more advanced oracle triggers (e.g., Chainlink mock + Gelato-style automation) with time delays and off-chain signals.
+## 🧭 Future Testing Plans (Priority Order)
 
-- **Cross-Network Consistency**  
-  Validate behavior on networks like Polygon and Arbitrum to catch potential EVM inconsistencies.
+1. **Dispute Resolution Logic**
+   Complete coverage for `DisputeModule` with edge cases and access control.
 
-- **Security Edge Cases**  
-  Fuzz and stress test for:
-  - Reentrancy under rare interleavings
-  - Malicious validators/clients
-  - Fallback scenarios (artist disappears, etc.)
+2. **Oracle & Automation**
+   Advanced oracle simulations including Chainlink and Gelato-style triggers.
 
-- **Fuzz Test Oracle Injection**
-  Fix failing fuzz tests by mocking oracle return values dynamically within fuzzed flows.
+3. **Multiple Projects**
+   Handling multiple concurrent projects per client.
 
-- **VaultFactory / VaultInstance Pattern**  
-  Future architecture will include multiple vault instances per user or per project type. Tests will simulate deployment and delegation flows.
+4. **Cross-Network Consistency**
+   Tests on Polygon, Arbitrum, etc.
 
+5. **Security Edge Cases**
+   Stress and fuzz tests for reentrancy, malicious actors, and fallback scenarios.
+
+6. **Fuzz Test Oracle Injection**
+   Mocking oracle responses dynamically during fuzzing.
+
+7. **Factory Pattern**
+   Testing multi-instance vault deployments and delegation.

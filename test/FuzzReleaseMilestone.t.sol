@@ -34,7 +34,8 @@ contract FuzzReleaseMilestone is Test {
 
         // Simulate normal client flow: deposit → assign → validate
         vm.startPrank(client);
-        vault.depositFunds{value: 5 ether}(artist, milestoneCount);
+        uint256 depositAmount = milestoneCount * 1 ether;
+        vault.depositFunds{value: depositAmount}(artist, milestoneCount);
         vault.addValidator(0, validator);
         vm.stopPrank();
 
@@ -54,6 +55,7 @@ contract FuzzReleaseMilestone is Test {
 
         if (paid == milestoneCount) {
             assertTrue(released, "Project should be marked as released");
+            assertEq(address(vault).balance, 0, "Vault balance should be zero after full release");
         } else {
             assertFalse(released, "Project should not be marked as released yet");
         }

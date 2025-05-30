@@ -52,7 +52,7 @@ contract ArtVault is Ownable, BaseContract, EscrowContract, ValidationContract, 
         uint256 _projectId,
         address payable _artist,
         uint256 _milestoneCount
-    ) public {
+    ) public virtual {
         require(projects[_projectId].client == address(0), "Project already exists");
 
         projects[_projectId] = Project({
@@ -137,7 +137,7 @@ contract ArtVault is Ownable, BaseContract, EscrowContract, ValidationContract, 
      * @dev Releases the next milestone for a project.
      * Incorporates external rules (if enabled) before allowing release.
      */
-    function releaseMilestone(uint256 projectId) public virtual override {
+    function releaseMilestone(uint256 projectId) public virtual override onlyClient(projectId) {
         // Load rule configuration for the project
         ProjectConfig memory config = projectConfigs[projectId];
 
@@ -182,5 +182,28 @@ contract ArtVault is Ownable, BaseContract, EscrowContract, ValidationContract, 
         // Core release logic (unchanged from EscrowContract)
         _executeRelease(projectId);
 
+    }
+
+    function depositFunds(address _artist, uint256 _milestoneCount) external payable override {
+        require(_artist != address(0), "Invalid artist address");
+        require(msg.value > 0, "Amount must be > 0");
+        require(_milestoneCount > 0, "Milestone count must be greater than zero");
+
+        uint256 newProjectId = projectCount;
+
+        projects[newProjectId] = Project({
+            client: msg.sender,
+            artist: _artist,
+            amount: msg.value,
+            released: false,
+            validator: address(0),
+            validated: false,
+            milestoneCount: _milestoneCount,
+            milestonesPaid: 0
+        });
+
+        projectCount++;
+
+        emit FundsDeposited(newProjectId, msg.sender, _artist, msg.value);
     }
 }

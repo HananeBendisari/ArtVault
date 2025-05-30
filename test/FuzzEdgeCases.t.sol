@@ -18,7 +18,9 @@ contract FuzzEdgeCases is Test {
         vm.deal(client, 10 ether);
     }
 
-    /// @dev Validator should be able to validate multiple projects
+    /// @dev Not a true fuzz test — this validates that a single validator can validate multiple projects.
+    /// Useful edge case but deterministic. Included here for logical coverage.
+
     function testFuzz_SameValidatorMultipleProjects() public {
         address validator = address(0x3);
 
