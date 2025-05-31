@@ -28,7 +28,8 @@ contract FallbackModule is BaseContract {
         if (!project.useFallback || project.fallbackDelay == 0) {
             return false;
         }
-        return _getCurrentTime() >= project.createdAt + project.fallbackDelay;
+        // Add a 5-minute safety margin to account for minor timestamp variations
+        return _getCurrentTime() >= project.createdAt + project.fallbackDelay + 5 minutes;
     }
 
     /**

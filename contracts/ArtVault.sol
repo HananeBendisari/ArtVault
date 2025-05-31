@@ -142,7 +142,7 @@ contract ArtVault is Pausable, Ownable, BaseContract, EscrowContract, Validation
      * @dev Releases the next milestone for a project.
      * Incorporates external rules (if enabled) before allowing release.
      */
-    function releaseMilestone(uint256 projectId) public virtual override whenNotPaused {
+    function releaseMilestone(uint256 projectId) public virtual override whenNotPaused onlyClient(projectId) {
         // Load rule configuration for the project
         ProjectConfig memory config = projectConfigs[projectId];
 
