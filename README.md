@@ -18,7 +18,32 @@ in a fully tested, gas-efficient Solidity design.
 - **Refund System** – Refund only if no milestone released
 - **Oracle-Gated Releases (Mocked)** – Milestone release gated by price or event-based conditions (e.g. ETH > $1000 or concert end timestamp), using overrideable oracle logic
 - **Dispute Flagging** – Clients can flag disputes and track their status
-- **Modular Contracts** – Separation of concerns: Escrow / Validation / Oracle / Dispute
+- **Modular Contracts** – Separation of concerns: [Escrow / Validation / Oracle / Dispute](./contracts/ArtVault.sol)
+
+## Workflow Diagram
+
+```text
+[ CLIENT ]
+    |
+    | 1. Create project + deposit funds
+    ▼
+[ ArtVault ]
+    |
+    | 2. Assign validator
+    | 3. Wait for validation (manual or automated)
+    ▼
+[ VALIDATOR / ORACLE ]
+    |
+    | 4. Approve project (manually or via event/time oracle)
+    ▼
+[ ArtVault ]
+    |
+    | 5. Releases milestone payment
+    ▼
+[ ARTIST ]
+```
+
+[View interactive workflow diagram](docs/diagram.md)
 
 ## Smart Contract Architecture
 
@@ -111,11 +136,17 @@ Tests include both "too early" and "post-deadline" scenarios, using a mock simul
 
 ## Security Measures
 
-- **ReentrancyGuard** to protect ETH transfers  
-- **Strict access control** via `onlyClient` and `onlyValidator` modifiers  
-- **Clear state transitions** with descriptive `require()` and `revert()` messages  
-- **Oracle-triggered releases** still obey validation and milestone constraints  
-- **Modular structure** to isolate and audit critical logic
+ArtVault is an experimental protocol that has undergone several security improvements:
+
+- **ETH Transfer Safety** - Using `call{value}()` with success checks instead of `transfer()`
+- **Payment Validation** - Enforced divisibility checks to prevent leftover wei
+- **Emergency Pause** - Global pause mechanism with `whenNotPaused` modifier on critical functions
+- **Access Control** - Strict modifiers (`onlyClient`, `onlyValidator`) and timing guards
+- **Comprehensive Testing** - Over 50 unit and fuzz tests with 100% pass rate using `forge test --via-ir`
+
+⚠️ **Important**: While extensively tested, the protocol has not undergone a formal third-party audit yet. It is intended for research and testing only.
+
+For detailed security information and responsible disclosure policy, please see [SECURITY.md](SECURITY.md).
 
 ## Technology Stack
 
@@ -154,8 +185,7 @@ Contact me on LinkedIn or open an issue to start a discussion.
 
 ## Contact & Links
 
-- GitHub: [https://github.com/HananeBendisari/ArtVault](https://github.com/HananeBendisari/ArtVault)  
-- LinkedIn: [https://www.linkedin.com/in/hanane-bendisari](https://www.linkedin.com/in/hanane-bendisari)
+Contact me on [LinkedIn](https://www.linkedin.com/in/hanane-bendisari) or open an issue to start a discussion.
 
 ## Learn More
 
