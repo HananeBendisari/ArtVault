@@ -8,3 +8,4 @@ remappings = [
   "forge-std/=lib/forge-std/src/"
 ]
 gas_reports = ["*"]
+via_ir = true
