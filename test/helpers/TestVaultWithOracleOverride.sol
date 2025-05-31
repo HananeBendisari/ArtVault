@@ -76,7 +76,9 @@ contract TestVaultWithOracleOverride is ArtVault {
             validator: address(0),
             validated: false,
             milestoneCount: _milestoneCount,
-            milestonesPaid: 0
+            milestonesPaid: 0,
+            useFallback: false,
+            fallbackDelay: 0
         });
 
         projectCount++;

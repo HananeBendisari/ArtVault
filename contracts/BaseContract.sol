@@ -18,6 +18,8 @@ contract BaseContract {
         bool validated;
         uint256 milestoneCount;
         uint256 milestonesPaid;
+        bool useFallback;
+        uint256 fallbackDelay;
     }
 
     mapping(uint256 => Project) public projects;

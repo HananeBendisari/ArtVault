@@ -39,7 +39,18 @@ contract ArtVaultTest is Test {
 
         assertEq(address(vault).balance, 2 ether);
 
-        (address storedClient,, uint256 amount,, address storedValidator,, uint256 count, uint256 paid) = vault.projects(0);
+        (
+            address storedClient,
+            ,
+            uint256 amount,
+            ,
+            address storedValidator,
+            ,
+            uint256 count,
+            uint256 paid,
+            ,
+            
+        ) = vault.projects(0);
         assertEq(storedClient, client);
         assertEq(amount, 2 ether);
         assertEq(storedValidator, address(0));
@@ -61,7 +72,18 @@ contract ArtVaultTest is Test {
         vm.prank(client);
         vault.releaseMilestone(0);
 
-        (, , , , , , , uint256 paid) = vault.projects(0);
+        (
+            ,
+            ,
+            ,
+            ,
+            ,
+            ,
+            ,
+            uint256 paid,
+            ,
+            
+        ) = vault.projects(0);
         assertEq(paid, 1);
 
         uint256 artistBalanceAfter = artist.balance;
@@ -108,7 +130,18 @@ contract ArtVaultTest is Test {
         vm.prank(client);
         vault.addValidator(0, validator);
 
-        (, , , , address storedValidator, , , ) = vault.projects(0);
+        (
+            ,
+            ,
+            ,
+            ,
+            address storedValidator,
+            ,
+            ,
+            ,
+            ,
+            
+        ) = vault.projects(0);
         assertEq(storedValidator, validator);
     }
 
@@ -132,7 +165,18 @@ contract ArtVaultTest is Test {
         vm.prank(validator);
         vault.validateProject(0);
 
-        (, , , , , bool validated, , ) = vault.projects(0);
+        (
+            ,
+            ,
+            ,
+            ,
+            ,
+            bool validated,
+            ,
+            ,
+            ,
+            
+        ) = vault.projects(0);
         assertTrue(validated);
     }
 
