@@ -42,7 +42,8 @@ contract TestVaultWithFallback is BaseContract, EscrowContract {
             milestonesPaid: 0,
             useFallback: false,
             fallbackDelay: 0,
-            useSignature: false
+            useSignature: false,
+            createdAt: block.timestamp
         });
 
         projectCount++;

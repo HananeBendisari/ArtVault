@@ -16,9 +16,10 @@ library TestHelper {
         bool useFallback;
         uint256 fallbackDelay;
         bool useSignature;
+        uint256 createdAt;
     }
 
-    function getProjectInfo(BaseContract vault, uint256 projectId) internal view returns (ProjectInfo memory) {
+    function getProjectInfo(BaseContract vault, uint256 projectId) public view returns (ProjectInfo memory) {
         (
             address client,
             address artist,
@@ -30,7 +31,8 @@ library TestHelper {
             uint256 milestonesPaid,
             bool useFallback,
             uint256 fallbackDelay,
-            bool useSignature
+            bool useSignature,
+            uint256 createdAt
         ) = vault.getProject(projectId);
 
         return ProjectInfo({
@@ -44,7 +46,8 @@ library TestHelper {
             milestonesPaid: milestonesPaid,
             useFallback: useFallback,
             fallbackDelay: fallbackDelay,
-            useSignature: useSignature
+            useSignature: useSignature,
+            createdAt: createdAt
         });
     }
 } 

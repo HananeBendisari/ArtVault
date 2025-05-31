@@ -2,7 +2,7 @@
 pragma solidity ^0.8.19;
 
 import "./ArtVault.sol";
-import "./IOracle.sol";
+import "./interfaces/IOracle.sol";
 
 /**
  * @title ArtVaultOracleMock

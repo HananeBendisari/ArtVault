@@ -3,7 +3,8 @@ pragma solidity ^0.8.19;
 
 import "./BaseContract.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
-import "./IOracle.sol";
+import "./ValidationContract.sol";
+import "./interfaces/IOracle.sol";
 
 /**
  * @title EscrowContract
@@ -36,7 +37,8 @@ contract EscrowContract is BaseContract, ReentrancyGuard {
             milestonesPaid: 0,
             useFallback: false,
             fallbackDelay: 0,
-            useSignature: false
+            useSignature: false,
+            createdAt: block.timestamp
         });
 
         projectCount++; // Increment global counter
@@ -144,8 +146,8 @@ contract EscrowContract is BaseContract, ReentrancyGuard {
 
     /**
      * @dev Internal extraction of the real logic for milestone release.
-     * Called by overriden releaseMilestone in child contracts (ArtVault).
-     * Pattern: checks custom (modules) en haut, puis _executeRelease() à la fin.
+     * Called by overridden releaseMilestone in child contracts (ArtVault).
+     * Pattern: custom checks (modules) at the top, then _executeRelease() at the end.
      */
     function _executeRelease(uint256 _projectId) internal {
         Project storage project = projects[_projectId];

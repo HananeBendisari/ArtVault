@@ -5,8 +5,8 @@ pragma solidity ^0.8.19;
 import "./BaseContract.sol";
 import "./EscrowContract.sol";
 import "./ValidationContract.sol";
-import "./DisputeModule.sol";
-import "./IOracle.sol";
+import "./modules/DisputeModule.sol";
+import "./interfaces/IOracle.sol";
 
 // Access control
 import "@openzeppelin/contracts/access/Ownable.sol";
@@ -66,7 +66,8 @@ contract ArtVault is Ownable, BaseContract, EscrowContract, ValidationContract, 
             milestonesPaid: 0,
             useFallback: false,
             fallbackDelay: 0,
-            useSignature: false
+            useSignature: false,
+            createdAt: block.timestamp
         });
 
         projectCount++;
@@ -205,7 +206,8 @@ contract ArtVault is Ownable, BaseContract, EscrowContract, ValidationContract, 
             milestonesPaid: 0,
             useFallback: false,
             fallbackDelay: 0,
-            useSignature: false
+            useSignature: false,
+            createdAt: block.timestamp
         });
 
         projectCount++;

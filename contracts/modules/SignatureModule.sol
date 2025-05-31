@@ -2,57 +2,48 @@
 pragma solidity ^0.8.19;
 
 import "../BaseContract.sol";
-import "../interfaces/ISignatureModule.sol";
 
 /**
  * @title SignatureModule
- * @dev Implements double-signature logic for milestone releases
+ * @dev Module for double signature confirmation of projects
  */
-contract SignatureModule is BaseContract, ISignatureModule {
-    /// @dev Tracks signature status for each project
-    struct SignatureStatus {
-        bool clientSigned;
-        bool artistSigned;
-    }
-
-    /// @dev Mapping from project ID to signature status
-    mapping(uint256 => SignatureStatus) public signatures;
-
-    /// @dev Emitted when a signature is confirmed
+contract SignatureModule is BaseContract {
     event SignatureConfirmed(address indexed signer, uint256 indexed projectId);
 
+    mapping(uint256 => mapping(address => bool)) private signatures;
+
     /**
-     * @dev Confirms signature for a project
-     * @param projectId The ID of the project
+     * @dev Initializes the signature module for a project
+     * @param projectId Project ID
      */
-    function confirmSignature(uint256 projectId) external override {
+    function _initializeSignature(uint256 projectId) internal {
         Project storage project = projects[projectId];
-        require(project.client != address(0), "Project does not exist");
-        require(
-            msg.sender == project.client || msg.sender == project.artist,
-            "Only client or artist can sign"
-        );
+        project.useSignature = false;
+    }
 
-        SignatureStatus storage status = signatures[projectId];
+    /**
+     * @dev Confirms the signature for a project
+     * @param projectId Project ID
+     */
+    function confirmSignature(uint256 projectId) external {
+        Project storage project = projects[projectId];
+        require(project.useSignature, "Signature module not enabled");
+        require(msg.sender == project.client || msg.sender == project.artist, "Only client or artist can sign");
+        require(!signatures[projectId][msg.sender], "Already signed");
 
-        if (msg.sender == project.client) {
-            require(!status.clientSigned, "Already signed");
-            status.clientSigned = true;
-        } else {
-            require(!status.artistSigned, "Already signed");
-            status.artistSigned = true;
-        }
-
+        signatures[projectId][msg.sender] = true;
         emit SignatureConfirmed(msg.sender, projectId);
     }
 
     /**
-     * @dev Checks if a project can be released based on signatures
-     * @param projectId The ID of the project
-     * @return bool True if both signatures are present
+     * @dev Checks if the project can be released by signature
+     * @param projectId Project ID
      */
-    function canReleaseBySignature(uint256 projectId) external view override returns (bool) {
-        SignatureStatus storage status = signatures[projectId];
-        return status.clientSigned && status.artistSigned;
+    function canReleaseBySignature(uint256 projectId) public view returns (bool) {
+        Project storage project = projects[projectId];
+        if (!project.useSignature) {
+            return false;
+        }
+        return signatures[projectId][project.client] && signatures[projectId][project.artist];
     }
 } 

@@ -79,7 +79,8 @@ contract TestVaultWithOracleOverride is ArtVault {
             milestonesPaid: 0,
             useFallback: false,
             fallbackDelay: 0,
-            useSignature: false
+            useSignature: false,
+            createdAt: block.timestamp
         });
 
         projectCount++;

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
-import "./IOracle.sol";
+import "./interfaces/IOracle.sol";
 
 
 /**
@@ -21,6 +21,7 @@ contract BaseContract {
         bool useFallback;
         uint256 fallbackDelay;
         bool useSignature;
+        uint256 createdAt;
     }
 
     mapping(uint256 => Project) public projects;
@@ -79,7 +80,8 @@ contract BaseContract {
             uint256 milestonesPaid,
             bool useFallback,
             uint256 fallbackDelay,
-            bool useSignature
+            bool useSignature,
+            uint256 createdAt
         )
     {
         Project memory p = projects[_projectId];
@@ -94,7 +96,8 @@ contract BaseContract {
             p.milestonesPaid,
             p.useFallback,
             p.fallbackDelay,
-            p.useSignature
+            p.useSignature,
+            p.createdAt
         );
     }
     
