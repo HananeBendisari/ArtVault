@@ -7,6 +7,7 @@ import "./EscrowContract.sol";
 import "./ValidationContract.sol";
 import "./modules/DisputeModule.sol";
 import "./interfaces/IOracle.sol";
+import "./Pausable.sol";
 
 // Access control
 import "@openzeppelin/contracts/access/Ownable.sol";
@@ -21,7 +22,7 @@ import {ISignatureModule} from "./interfaces/ISignatureModule.sol";
  * @dev Escrow contract for milestone-based payments, with modular rule engine integration.
  * Core business logic is inherited; optional enforcement logic is injected via external modules.
  */
-contract ArtVault is Ownable, BaseContract, EscrowContract, ValidationContract, DisputeModule {
+contract ArtVault is Pausable, Ownable, BaseContract, EscrowContract, ValidationContract, DisputeModule {
     
     // External modules injected at runtime (can be mocks or real rules)
     IForteRules public forteRules;
@@ -42,7 +43,7 @@ contract ArtVault is Ownable, BaseContract, EscrowContract, ValidationContract, 
     // Mapping of projectId => ProjectConfig
     mapping(uint256 => ProjectConfig) public projectConfigs;
 
-    constructor() Ownable(msg.sender) {}
+    constructor() Pausable(msg.sender) Ownable(msg.sender) {}
 
     /**
      * @dev Creates a new project with artist and number of milestones.
@@ -52,7 +53,7 @@ contract ArtVault is Ownable, BaseContract, EscrowContract, ValidationContract, 
         uint256 _projectId,
         address payable _artist,
         uint256 _milestoneCount
-    ) public virtual {
+    ) external whenNotPaused {
         require(projects[_projectId].client == address(0), "Project already exists");
 
         projects[_projectId] = Project({
@@ -82,7 +83,7 @@ contract ArtVault is Ownable, BaseContract, EscrowContract, ValidationContract, 
         bool _useForte,
         bool _useFallback,
         bool _useSig
-    ) external {
+    ) external whenNotPaused {
         require(msg.sender == projects[_projectId].client, "Only client can configure project");
 
         projectConfigs[_projectId] = ProjectConfig({
@@ -95,35 +96,35 @@ contract ArtVault is Ownable, BaseContract, EscrowContract, ValidationContract, 
     /**
      * @dev Injects the ForteRules module contract.
      */
-    function setForteRulesModule(address _addr) external {
+    function setForteRulesModule(address _addr) external onlyOwner whenNotPaused {
         forteRules = IForteRules(_addr);
     }
 
     /**
      * @dev Injects the Fallback module contract.
      */
-    function setFallbackModule(address _addr) external {
+    function setFallbackModule(address _addr) external onlyOwner whenNotPaused {
         fallbackModule = IFallbackModule(_addr);
     }
 
     /**
      * @dev Injects the Signature module contract.
      */
-    function setSignatureModule(address _addr) external {
+    function setSignatureModule(address _addr) external onlyOwner whenNotPaused {
         signatureModule = ISignatureModule(_addr);
     }
 
     /**
      * @dev Sets the production oracle.
      */
-    function setOracle(address _oracle) external onlyOwner {
+    function setOracle(address _oracle) external onlyOwner whenNotPaused {
         oracle = IOracle(_oracle);
     }
 
     /**
      * @dev Overrides the oracle (used for testing).
      */
-    function setOracleOverride(IOracle o) external virtual {
+    function setOracleOverride(IOracle o) public virtual {
         _oracleOverride = o;
     }
 
@@ -141,7 +142,7 @@ contract ArtVault is Ownable, BaseContract, EscrowContract, ValidationContract, 
      * @dev Releases the next milestone for a project.
      * Incorporates external rules (if enabled) before allowing release.
      */
-    function releaseMilestone(uint256 projectId) public virtual override onlyClient(projectId) {
+    function releaseMilestone(uint256 projectId) public virtual override whenNotPaused {
         // Load rule configuration for the project
         ProjectConfig memory config = projectConfigs[projectId];
 
@@ -185,10 +186,9 @@ contract ArtVault is Ownable, BaseContract, EscrowContract, ValidationContract, 
 
         // Core release logic (unchanged from EscrowContract)
         _executeRelease(projectId);
-
     }
 
-    function depositFunds(address _artist, uint256 _milestoneCount) external payable override {
+    function depositFunds(address _artist, uint256 _milestoneCount) external payable override whenNotPaused {
         require(_artist != address(0), "Invalid artist address");
         require(msg.value > 0, "Amount must be > 0");
         require(_milestoneCount > 0, "Milestone count must be greater than zero");
