@@ -50,7 +50,8 @@ contract FallbackModule is BaseContract {
             project.released = true;
         }
 
-        payable(project.artist).transfer(milestoneAmount);
+        (bool success, ) = payable(project.artist).call{value: milestoneAmount}("");
+        require(success, "Transfer to artist failed");
         emit FallbackReleased(projectId, project.milestonesPaid);
     }
 

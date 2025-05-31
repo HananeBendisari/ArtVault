@@ -22,6 +22,7 @@ contract EscrowContract is BaseContract, ReentrancyGuard {
         require(_artist != address(0), "Invalid artist address");
         require(msg.value > 0, "Amount must be > 0");
         require(_milestoneCount > 0, "Milestone count must be greater than zero");
+        require(msg.value % _milestoneCount == 0, "Amount must be divisible by milestone count");
 
         uint256 newProjectId = projectCount;
 
