@@ -157,3 +157,52 @@ Foundry will execute unit + fuzz tests on all core modules.
 
 7. **Factory Pattern**
    Testing multi-instance vault deployments and delegation.
+
+# ArtVault Test Documentation
+
+## Security Tests
+
+The test suite includes comprehensive security testing for all critical functions:
+
+### Fallback Module Tests (`test/FallbackModule.t.sol`)
+
+✅ `fallbackRelease()` tested against reentrancy attack using malicious artist mock
+- Validates Checks-Effects-Interactions pattern
+- Ensures state changes happen before ETH transfer
+- Verifies protection against malicious contracts
+- Tests proper event emission and state updates
+
+### Test Mocks
+
+The `test/mocks/` directory contains contracts used for security testing:
+
+- `MaliciousArtist.sol`: Simulates a malicious contract attempting reentrancy attacks
+  - Used to verify protection in milestone payment functions
+  - Attempts to exploit ETH transfers for multiple payments
+  - Demonstrates secure implementation of Checks-Effects-Interactions
+
+## Running Tests
+
+```bash
+# Run all tests
+forge test
+
+# Run specific test file
+forge test --match-contract FallbackModuleTest
+
+# Run with gas reporting
+forge test --gas-report
+
+# Run with traces for debugging
+forge test -vvv
+```
+
+## Test Coverage
+
+Security-critical functions are tested for:
+- Input validation
+- Access control
+- State transitions
+- Event emission
+- ETH handling
+- Reentrancy protection
