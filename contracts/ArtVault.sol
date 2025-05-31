@@ -22,7 +22,7 @@ import {ISignatureModule} from "./interfaces/ISignatureModule.sol";
  * @dev Escrow contract for milestone-based payments, with modular rule engine integration.
  * Core business logic is inherited; optional enforcement logic is injected via external modules.
  */
-contract ArtVault is Pausable, Ownable, BaseContract, EscrowContract, ValidationContract, DisputeModule {
+contract ArtVault is Pausable, BaseContract, EscrowContract, ValidationContract, DisputeModule {
     
     // External modules injected at runtime (can be mocks or real rules)
     IForteRules public forteRules;
@@ -43,7 +43,7 @@ contract ArtVault is Pausable, Ownable, BaseContract, EscrowContract, Validation
     // Mapping of projectId => ProjectConfig
     mapping(uint256 => ProjectConfig) public projectConfigs;
 
-    constructor() Pausable(msg.sender) Ownable(msg.sender) {}
+    constructor() Pausable(msg.sender) {}
 
     /**
      * @dev Creates a new project with artist and number of milestones.
@@ -53,7 +53,7 @@ contract ArtVault is Pausable, Ownable, BaseContract, EscrowContract, Validation
         uint256 _projectId,
         address payable _artist,
         uint256 _milestoneCount
-    ) external whenNotPaused {
+    ) external virtual whenNotPaused {
         require(projects[_projectId].client == address(0), "Project already exists");
 
         projects[_projectId] = Project({
