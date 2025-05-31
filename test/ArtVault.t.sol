@@ -3,6 +3,7 @@ pragma solidity ^0.8.19;
 
 import "forge-std/Test.sol";
 import "../contracts/ArtVault.sol";
+import "./helpers/TestHelper.sol";
 import {TestVaultWithOracleOverride} from "./helpers/TestVaultWithOracleOverride.sol";
 import {MockOracle} from "./helpers/MockOracle.sol";
 
@@ -13,23 +14,28 @@ import {MockOracle} from "./helpers/MockOracle.sol";
  * @dev Comprehensive test suite for the ArtVault contract, including oracle override logic.
  */
 contract ArtVaultTest is Test {
+    using TestHelper for BaseContract;
+
     TestVaultWithOracleOverride public vault;
     MockOracle public oracle;
 
-    address client;
-    address artist;
-    address validator;
+    address payable public client;
+    address payable public artist;
+    address public validator;
 
     function setUp() public {
-        vault = new TestVaultWithOracleOverride();
-        oracle = new MockOracle(2000); // high price so releases are allowed
-        vault.setOracleOverride(oracle);
-
-        client = address(1);
-        artist = address(2);
+        // Setup accounts
+        client = payable(address(1));
+        artist = payable(address(2));
         validator = address(3);
-
-        vm.deal(client, 10 ether); // fund test client
+        
+        // Deploy contracts
+        oracle = new MockOracle(2000); // high price so releases are allowed
+        vault = new TestVaultWithOracleOverride();
+        vault.setOracleOverride(oracle);
+        
+        // Fund client
+        vm.deal(client, 100 ether);
     }
 
     /// @dev Basic deposit test with state assertions
@@ -39,23 +45,12 @@ contract ArtVaultTest is Test {
 
         assertEq(address(vault).balance, 2 ether);
 
-        (
-            address storedClient,
-            ,
-            uint256 amount,
-            ,
-            address storedValidator,
-            ,
-            uint256 count,
-            uint256 paid,
-            ,
-            
-        ) = vault.projects(0);
-        assertEq(storedClient, client);
-        assertEq(amount, 2 ether);
-        assertEq(storedValidator, address(0));
-        assertEq(count, 3);
-        assertEq(paid, 0);
+        TestHelper.ProjectInfo memory info = TestHelper.getProjectInfo(vault, 0);
+        assertEq(info.client, client);
+        assertEq(info.amount, 2 ether);
+        assertEq(info.validator, address(0));
+        assertEq(info.milestoneCount, 3);
+        assertEq(info.milestonesPaid, 0);
     }
 
     /// @dev Tests a full release flow: deposit, assign validator, validate, release 1 milestone
@@ -72,23 +67,11 @@ contract ArtVaultTest is Test {
         vm.prank(client);
         vault.releaseMilestone(0);
 
-        (
-            ,
-            ,
-            ,
-            ,
-            ,
-            ,
-            ,
-            uint256 paid,
-            ,
-            
-        ) = vault.projects(0);
-        assertEq(paid, 1);
+        TestHelper.ProjectInfo memory info = TestHelper.getProjectInfo(vault, 0);
+        assertEq(info.milestonesPaid, 1);
 
         uint256 artistBalanceAfter = artist.balance;
         assertEq(artistBalanceAfter - before, 1 ether);
-
     }
 
     /// @dev Client can refund if no milestone has been released
@@ -101,7 +84,7 @@ contract ArtVaultTest is Test {
         vault.refundClient(0);
 
         uint256 clientBalanceAfter = client.balance;
-       assertEq(clientBalanceAfter - before, 2 ether);
+        assertEq(clientBalanceAfter - before, 2 ether);
     }
 
     /// @dev Refund is blocked once all milestones are paid
@@ -130,19 +113,8 @@ contract ArtVaultTest is Test {
         vm.prank(client);
         vault.addValidator(0, validator);
 
-        (
-            ,
-            ,
-            ,
-            ,
-            address storedValidator,
-            ,
-            ,
-            ,
-            ,
-            
-        ) = vault.projects(0);
-        assertEq(storedValidator, validator);
+        TestHelper.ProjectInfo memory info = TestHelper.getProjectInfo(vault, 0);
+        assertEq(info.validator, validator);
     }
 
     /// @dev Only the client can assign the validator
@@ -165,19 +137,8 @@ contract ArtVaultTest is Test {
         vm.prank(validator);
         vault.validateProject(0);
 
-        (
-            ,
-            ,
-            ,
-            ,
-            ,
-            bool validated,
-            ,
-            ,
-            ,
-            
-        ) = vault.projects(0);
-        assertTrue(validated);
+        TestHelper.ProjectInfo memory info = TestHelper.getProjectInfo(vault, 0);
+        assertTrue(info.validated);
     }
 
     /// @dev A non-assigned validator cannot validate
@@ -256,15 +217,13 @@ contract ArtVaultTest is Test {
 
         vm.prank(client);
         vault.releaseMilestone(0);
-        (, , , bool released1, , , , uint paid1) = vault.getProject(0);
-        assertEq(paid1, 1);
-        assertFalse(released1);
 
-        vm.prank(client);
-        vault.releaseMilestone(0);
-        (, , , bool released2, , , , uint paid2) = vault.getProject(0);
-        assertEq(paid2, 2);
-        assertTrue(released2);
+        TestHelper.ProjectInfo memory info = TestHelper.getProjectInfo(vault, 0);
+        assertEq(info.amount, 2 ether);
+        assertEq(info.milestonesPaid, 1);
+        assertFalse(info.released);
+        assertEq(info.validator, validator);
+        assertEq(info.milestoneCount, 2);
     }
 
     /// @dev Cannot pay more milestones than declared
@@ -293,7 +252,7 @@ contract ArtVaultTest is Test {
         emit log_named_address("Oracle override set", address(oracle));
 
         vm.startPrank(client);
-        vault.createProject(0, payable(artist), 2);
+        vault.createProject(0, artist, 2);
         emit log("Project created");
         vault.depositFunds{value: 5 ether}(artist, 2);
         vault.addValidator(0, validator);
@@ -305,7 +264,26 @@ contract ArtVaultTest is Test {
         vm.prank(client);
         vault.releaseMilestone(0);
 
-        (, , , , , , , uint256 paid) = vault.getProject(0);
-        assertEq(paid, 1);
+        TestHelper.ProjectInfo memory info = TestHelper.getProjectInfo(vault, 0);
+        assertEq(info.milestonesPaid, 1);
+    }
+
+    function testCreateProject() public {
+        vm.prank(client);
+        vault.createProject(0, artist, 2);
+
+        TestHelper.ProjectInfo memory info = TestHelper.getProjectInfo(vault, 0);
+
+        assertEq(info.client, client);
+        assertEq(info.artist, artist);
+        assertEq(info.amount, 0);
+        assertFalse(info.released);
+        assertEq(info.validator, address(0));
+        assertFalse(info.validated);
+        assertEq(info.milestoneCount, 2);
+        assertEq(info.milestonesPaid, 0);
+        assertFalse(info.useFallback);
+        assertEq(info.fallbackDelay, 0);
+        assertFalse(info.useSignature);
     }
 }

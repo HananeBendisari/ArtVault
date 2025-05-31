@@ -5,6 +5,7 @@ import "forge-std/Test.sol";
 import "../contracts/ArtVault.sol";
 import {MockOracle} from "./helpers/MockOracle.sol";
 import {MockForteRules} from "../contracts/mocks/MockForteRules.sol";
+import {TestHelper} from "./helpers/TestHelper.sol";
 
 /**
  * @title ArtVault_ModulesTest
@@ -86,9 +87,8 @@ contract ArtVault_ModulesTest is Test {
         vm.prank(client);
         vault.releaseMilestone(43);
 
-        // 7. Assert that the milestone was released (milestonesPaid should be 1)
-        (, , , , , , , uint256 paid) = vault.getProject(43);
-        assertEq(paid, 1, "Milestone should have been released");
+        TestHelper.ProjectInfo memory info = TestHelper.getProjectInfo(vault, 43);
+        assertEq(info.milestonesPaid, 1);
     }
 
 

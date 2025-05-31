@@ -65,7 +65,8 @@ contract ArtVault is Ownable, BaseContract, EscrowContract, ValidationContract, 
             milestoneCount: _milestoneCount,
             milestonesPaid: 0,
             useFallback: false,
-            fallbackDelay: 0
+            fallbackDelay: 0,
+            useSignature: false
         });
 
         projectCount++;
@@ -176,7 +177,7 @@ contract ArtVault is Ownable, BaseContract, EscrowContract, ValidationContract, 
                 "Signature module not set"
             );
             require(
-                signatureModule.isDoubleConfirmed(projectId, milestoneId),
+                signatureModule.canReleaseBySignature(projectId),
                 "Both client and artist must confirm"
             );
         }
@@ -203,7 +204,8 @@ contract ArtVault is Ownable, BaseContract, EscrowContract, ValidationContract, 
             milestoneCount: _milestoneCount,
             milestonesPaid: 0,
             useFallback: false,
-            fallbackDelay: 0
+            fallbackDelay: 0,
+            useSignature: false
         });
 
         projectCount++;

@@ -4,6 +4,7 @@ pragma solidity ^0.8.19;
 import "forge-std/Test.sol";
 import "../contracts/ArtVaultOracleMock.sol";
 import {TestVaultWithOracleOverride} from "./helpers/TestVaultWithOracleOverride.sol";
+import {TestHelper} from "./helpers/TestHelper.sol";
 
 /**
  * @title ArtVaultOracleMockTest
@@ -72,7 +73,13 @@ contract ArtVaultOracleMockTest is Test {
         oracle.checkAndTrigger(0);
 
         // Verify milestone was released
-        (,,, , , , , uint256 paid) = vault.getProject(0);
-        assertEq(paid, 1, "Milestone should be released after oracle triggers");
+        TestHelper.ProjectInfo memory info = TestHelper.getProjectInfo(vault, 0);
+        assertEq(info.milestonesPaid, 1, "Milestone should be released after oracle triggers");
+
+        vm.prank(client);
+        vault.releaseMilestone(0);
+
+        info = TestHelper.getProjectInfo(vault, 0);
+        assertEq(info.milestonesPaid, 2);
     }
 }

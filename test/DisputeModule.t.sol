@@ -5,6 +5,7 @@ import "forge-std/Test.sol";
 import "../contracts/ArtVault.sol";
 import {TestVaultWithOracleOverride} from "./helpers/TestVaultWithOracleOverride.sol";
 import {MockOracle} from "./helpers/MockOracle.sol";
+import "./helpers/TestHelper.sol";
 
 /**
  * @title DisputeModuleTest
@@ -18,6 +19,8 @@ import {MockOracle} from "./helpers/MockOracle.sol";
  * 5. Error conditions are tested with custom error messages
  */
 contract DisputeModuleTest is Test {
+    using TestHelper for BaseContract;
+
     // Contracts
     TestVaultWithOracleOverride public vault;
     MockOracle public oracle;
@@ -109,10 +112,10 @@ contract DisputeModuleTest is Test {
         vm.stopPrank();
 
         // Verify intermediate state
-        (,,,bool isReleased1,,, uint256 totalMilestones1, uint256 paid1) = vault.getProject(newId);
-        assertEq(isReleased1, false, "Project should not be marked as released");
-        assertEq(paid1, 1, "Should have paid 1 milestone");
-        assertEq(totalMilestones1, milestoneCount, "Should have correct milestone count");
+        TestHelper.ProjectInfo memory info1 = TestHelper.getProjectInfo(vault, newId);
+        assertFalse(info1.released, "Project should not be marked as released");
+        assertEq(info1.milestonesPaid, 1, "Should have paid 1 milestone");
+        assertEq(info1.milestoneCount, milestoneCount, "Should have correct milestone count");
         assertEq(ARTIST.balance, initialArtistBalance + milestoneAmount, "Artist should have received first milestone payment");
         assertEq(address(vault).balance, initialVaultBalance - milestoneAmount, "Vault balance should be reduced");
 
@@ -127,9 +130,9 @@ contract DisputeModuleTest is Test {
         vm.stopPrank();
 
         // Verify final state
-        (,,,bool isReleased2,,, uint256 totalMilestones2, uint256 paid2) = vault.getProject(newId);
-        assertEq(isReleased2, true, "Project should be marked as released");
-        assertEq(paid2, totalMilestones2, "All milestones should be paid");
+        TestHelper.ProjectInfo memory info2 = TestHelper.getProjectInfo(vault, newId);
+        assertTrue(info2.released, "Project should be marked as released");
+        assertEq(info2.milestonesPaid, info2.milestoneCount, "All milestones should be paid");
         assertEq(ARTIST.balance, initialArtistBalance + amount, "Artist should have received full amount");
         assertEq(address(vault).balance, initialVaultBalance - amount, "Vault should have zero balance for this project");
     }
@@ -161,17 +164,17 @@ contract DisputeModuleTest is Test {
             vm.stopPrank();
 
             // Verify state after each release
-            (,,,bool released,,, uint256 totalMilestones, uint256 paid) = vault.getProject(projectId);
-            assertEq(paid, milestoneIndex, string(abi.encodePacked("Incorrect number of milestones paid at step ", milestoneIndex)));
-            assertEq(released, i == MILESTONE_COUNT - 1, "Incorrect release state");
+            TestHelper.ProjectInfo memory info = TestHelper.getProjectInfo(vault, projectId);
+            assertEq(info.milestonesPaid, milestoneIndex, string(abi.encodePacked("Incorrect number of milestones paid at step ", milestoneIndex)));
+            assertEq(info.released, i == MILESTONE_COUNT - 1, "Incorrect release state");
             assertEq(ARTIST.balance, initialArtistBalance + (milestoneAmount * milestoneIndex), "Incorrect artist balance");
             assertEq(address(vault).balance, initialVaultBalance - (milestoneAmount * milestoneIndex), "Incorrect vault balance");
         }
 
         // Verify final state
-        (,,,bool released,,, uint256 totalMilestones, uint256 paid) = vault.getProject(projectId);
-        assertEq(released, true, "Project should be fully released");
-        assertEq(paid, MILESTONE_COUNT, "All milestones should be paid");
+        TestHelper.ProjectInfo memory finalInfo = TestHelper.getProjectInfo(vault, projectId);
+        assertTrue(finalInfo.released, "Project should be fully released");
+        assertEq(finalInfo.milestonesPaid, MILESTONE_COUNT, "All milestones should be paid");
         assertEq(ARTIST.balance, initialArtistBalance + PROJECT_AMOUNT, "Artist should have received full amount");
         assertEq(address(vault).balance, initialVaultBalance - PROJECT_AMOUNT, "Vault should have zero balance");
     }
@@ -254,8 +257,8 @@ contract DisputeModuleTest is Test {
         vm.stopPrank();
 
         // Verify milestone release after recovery
-        (,,,, ,, uint256 totalMilestones, uint256 paid) = vault.getProject(projectId);
-        assertEq(paid, 1, "Should have paid 1 milestone after oracle recovery");
+        TestHelper.ProjectInfo memory info = TestHelper.getProjectInfo(vault, projectId);
+        assertEq(info.milestonesPaid, 1, "Should have paid 1 milestone after oracle recovery");
     }
 
     /// @notice Test dispute opening after partial release
@@ -274,9 +277,9 @@ contract DisputeModuleTest is Test {
         assertEq(entries[0].topics[0], keccak256("MilestoneReleased(uint256,uint256,uint256)"), "Event should be MilestoneReleased");
 
         // Verify state after partial release
-        (,,,bool released,,, uint256 totalMilestones, uint256 paid) = vault.getProject(projectId);
-        assertEq(released, false, "Project should not be marked as released");
-        assertEq(paid, 1, "Should have paid 1 milestone");
+        TestHelper.ProjectInfo memory info = TestHelper.getProjectInfo(vault, projectId);
+        assertFalse(info.released, "Project should not be marked as released");
+        assertEq(info.milestonesPaid, 1, "Should have paid 1 milestone");
         assertEq(ARTIST.balance, initialArtistBalance + milestoneAmount, "Artist should have received milestone payment");
         assertEq(address(vault).balance, initialVaultBalance - milestoneAmount, "Vault balance should be reduced");
 
@@ -285,10 +288,22 @@ contract DisputeModuleTest is Test {
         vault.openDispute(projectId, "Funds already partially released");
 
         // Verify state hasn't changed
-        (,,,released,,, totalMilestones, paid) = vault.getProject(projectId);
-        assertEq(released, false, "Release state should not change");
-        assertEq(paid, 1, "Should have paid 1 milestone");
-        assertEq(totalMilestones, MILESTONE_COUNT, "Should have correct milestone count");
+        TestHelper.ProjectInfo memory finalInfo = TestHelper.getProjectInfo(vault, projectId);
+        assertFalse(finalInfo.released, "Release state should not change");
+        assertEq(finalInfo.milestonesPaid, 1, "Should have paid 1 milestone");
+        assertEq(finalInfo.milestoneCount, MILESTONE_COUNT, "Should have correct milestone count");
         vm.stopPrank();
+    }
+
+    function testDisputeResolution() public {
+        vm.startPrank(CLIENT);
+        vault.depositFunds{value: 2 ether}(ARTIST, 2);
+        vm.stopPrank();
+
+        TestHelper.ProjectInfo memory info = TestHelper.getProjectInfo(vault, 1);
+
+        assertFalse(info.released);
+        assertEq(info.milestoneCount, 2);
+        assertEq(info.milestonesPaid, 0);
     }
 }

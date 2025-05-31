@@ -20,6 +20,7 @@ contract BaseContract {
         uint256 milestonesPaid;
         bool useFallback;
         uint256 fallbackDelay;
+        bool useSignature;
     }
 
     mapping(uint256 => Project) public projects;
@@ -75,7 +76,10 @@ contract BaseContract {
             address validator,
             bool validated,
             uint256 milestoneCount,
-            uint256 milestonesPaid
+            uint256 milestonesPaid,
+            bool useFallback,
+            uint256 fallbackDelay,
+            bool useSignature
         )
     {
         Project memory p = projects[_projectId];
@@ -87,7 +91,10 @@ contract BaseContract {
             p.validator,
             p.validated,
             p.milestoneCount,
-            p.milestonesPaid
+            p.milestonesPaid,
+            p.useFallback,
+            p.fallbackDelay,
+            p.useSignature
         );
     }
     

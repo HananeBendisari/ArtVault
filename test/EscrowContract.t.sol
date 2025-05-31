@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.20;
+pragma solidity ^0.8.19;
 
 import "forge-std/Test.sol";
 import "../contracts/ArtVault.sol";
+import "./helpers/TestHelper.sol";
 
 contract EscrowFuzzTest is Test {
     ArtVault vault;
@@ -29,25 +30,15 @@ contract EscrowFuzzTest is Test {
         assertEq(address(vault).balance, amount);
 
         // Verify that project data is initialized correctly
-        (
-            address projClient,
-            address projArtist,
-            uint256 projAmount,
-            bool released,
-            address validator,
-            bool validated,
-            uint256 milestones,
-            uint256 milestonesPaid
-        ) = vault.getProject(0); // projectId is 0 (first one)
-
-        assertEq(projClient, client, "Client mismatch");
-        assertEq(projArtist, artist, "Artist mismatch");
-        assertEq(projAmount, amount, "Amount mismatch");
-        assertEq(milestones, milestoneCount, "Milestone count mismatch");
-        assertEq(released, false, "Should not be released");
-        assertEq(validator, address(0), "Validator should be unset");
-        assertEq(validated, false, "Should not be validated");
-        assertEq(milestonesPaid, 0, "Should have no paid milestones yet");
+        TestHelper.ProjectInfo memory info = TestHelper.getProjectInfo(vault, 0);
+        assertEq(info.client, client);
+        assertEq(info.artist, artist);
+        assertEq(info.amount, amount);
+        assertEq(info.milestoneCount, milestoneCount);
+        assertFalse(info.released);
+        assertEq(info.validator, address(0));
+        assertFalse(info.validated);
+        assertEq(info.milestonesPaid, 0);
     }
     function testFuzz_RevertIfZeroDeposit(uint256 amount) public {
         vm.assume(amount == 0);

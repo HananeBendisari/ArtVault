@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
-import {BaseContract} from "./BaseContract.sol";
-import {EscrowContract} from "./EscrowContract.sol";
-import {IFallbackModule} from "./interfaces/IFallbackModule.sol";
+import {BaseContract} from "../../contracts/BaseContract.sol";
+import {EscrowContract} from "../../contracts/EscrowContract.sol";
+import {IFallbackModule} from "../../contracts/interfaces/IFallbackModule.sol";
 
 /**
  * @title TestVaultWithFallback
@@ -41,7 +41,8 @@ contract TestVaultWithFallback is BaseContract, EscrowContract {
             milestoneCount: _milestoneCount,
             milestonesPaid: 0,
             useFallback: false,
-            fallbackDelay: 0
+            fallbackDelay: 0,
+            useSignature: false
         });
 
         projectCount++;
@@ -104,4 +105,4 @@ contract TestVaultWithFallback is BaseContract, EscrowContract {
         project.milestonesPaid = project.milestoneCount;
         project.released = true;
     }
-}
+} 

@@ -4,6 +4,7 @@ pragma solidity ^0.8.19;
 import "forge-std/Test.sol";
 import "../contracts/MockOracle.sol";
 import { TestVaultWithOracleOverride } from "./helpers/TestVaultWithOracleOverride.sol";
+import { TestHelper } from "./helpers/TestHelper.sol";
 
 /**
  * @title FuzzReleaseMilestone
@@ -50,14 +51,14 @@ contract FuzzReleaseMilestone is Test {
         }
 
         // Check final state
-        (, , , bool released, , , , uint256 paid) = vault.getProject(0);
-        assertEq(paid, milestoneCount, "Incorrect milestone count");
+        TestHelper.ProjectInfo memory info = TestHelper.getProjectInfo(vault, 0);
+        assertEq(info.milestonesPaid, milestoneCount, "Incorrect milestone count");
 
-        if (paid == milestoneCount) {
-            assertTrue(released, "Project should be marked as released");
+        if (info.milestonesPaid == milestoneCount) {
+            assertTrue(info.released, "Project should be marked as released");
             assertEq(address(vault).balance, 0, "Vault balance should be zero after full release");
         } else {
-            assertFalse(released, "Project should not be marked as released yet");
+            assertFalse(info.released, "Project should not be marked as released yet");
         }
     }
 
@@ -77,5 +78,31 @@ contract FuzzReleaseMilestone is Test {
         vm.expectRevert("Error: Project must be validated before releasing funds");
         vm.prank(client);
         vault.releaseMilestone(0);
+    }
+
+    function testFuzz_ReleaseMilestone_NewHelper(uint8 milestoneCount) public {
+        // Avoid invalid values (0 or extreme high)
+        vm.assume(milestoneCount > 0 && milestoneCount <= 5);
+
+        // Simulate normal client flow: deposit → assign → validate
+        vm.startPrank(client);
+        uint256 depositAmount = milestoneCount * 1 ether;
+        vault.depositFunds{value: depositAmount}(artist, milestoneCount);
+        vault.addValidator(0, validator);
+        vm.stopPrank();
+
+        // Validator confirms project
+        vm.prank(validator);
+        vault.validateProject(0);
+
+        // Try to release each milestone
+        for (uint8 i = 0; i < milestoneCount; i++) {
+            vm.prank(client);
+            vault.releaseMilestone(0);
+        }
+
+        TestHelper.ProjectInfo memory info = TestHelper.getProjectInfo(vault, 0);
+        assertEq(info.milestonesPaid, milestoneCount);
+        assertTrue(info.released);
     }
 }

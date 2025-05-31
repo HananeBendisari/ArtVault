@@ -3,6 +3,7 @@ pragma solidity ^0.8.19;
 
 import "forge-std/Test.sol";
 import "../contracts/ArtVault.sol";
+import "./helpers/TestHelper.sol";
 
 /**
  * @title FuzzEdgeCases
@@ -43,11 +44,10 @@ contract FuzzEdgeCases is Test {
         vm.prank(validator);
         vault.validateProject(1);
 
-        // Check both projects are marked as validated
-        (, , , , , bool validated0, , ) = vault.getProject(0);
-        (, , , , , bool validated1, , ) = vault.getProject(1);
-
-        assertTrue(validated0);
-        assertTrue(validated1);
+        // Check validation status
+        TestHelper.ProjectInfo memory info0 = TestHelper.getProjectInfo(vault, 0);
+        TestHelper.ProjectInfo memory info1 = TestHelper.getProjectInfo(vault, 1);
+        assertTrue(info0.validated);
+        assertTrue(info1.validated);
     }
 }
