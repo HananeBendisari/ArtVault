@@ -52,17 +52,40 @@ Real-world inspired milestone flows now supported:
 - **Fallback Logic** *(planned)*: Auto-release if no validation after X days (using Chainlink + Gelato)
 - **Dispute Flow**: Clients can flag a dispute, status is tracked on-chain
 
-## Workflow
+## Workflow Overview
 
-1. **Client deposits ETH** and defines number of milestones.
-2. **Validator is assigned** to the project.
-3. **Validator validates** the project.
-4. **Milestones released**:
+```text
+[ CLIENT ]
+    |
+    | 1. Create project + deposit funds
+    ▼
+[ ArtVault ]
+    |
+    | 2. Assign validator
+    | 3. Wait for validation (manual or automated)
+    ▼
+[ VALIDATOR / ORACLE ]
+    |
+    | 4. Approve project (manually or via event/time oracle)
+    ▼
+[ ArtVault ]
+    |
+    | 5. Releases milestone payment
+    ▼
+[ ARTIST ]
+
+```
+## Detailed Steps
+
+1. **Client deposits ETH** and defines the number of milestones.
+2. **Validator is assigned** to oversee project completion.
+3. **Validator occurs** — either manually by the validator or via an oracle trigger (e.g., event ends).
+4. **Milestones payments are released**:
    - Manually by the client  
    - Or automatically via oracle trigger (e.g. after concert ends)
-5. **Refund possible**:
-   - Only if no milestone has been released
-6. **Dispute** can be opened by the client if issues arise.
+5. **Refund is possible**:
+   - Only if no milestone has been released yet.
+6. **Dispute** can be opened by the client to pause further payments and trigger resolution flow.
 
 ## Deployment & Testing
 
@@ -104,7 +127,7 @@ Tests include both "too early" and "post-deadline" scenarios, using a mock simul
 
 ## Next Improvements & Roadmap
 
-We are actively working on:
+Actively working on:
 
 - Finalizing dispute module tests and fixes (in progress)
 - Integrating fallback and signature modules for enhanced milestone management
@@ -145,7 +168,7 @@ Contact me on LinkedIn or open an issue to start a discussion.
 These documents live in the `docs/` folder and are updated alongside the main project.  
 Feel free to explore and suggest improvements via issues or pull requests.
 
-
+ 
 ## License
 
 This project is licensed under the **MIT License**.
