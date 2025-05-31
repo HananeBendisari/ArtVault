@@ -36,7 +36,8 @@ contract FallbackModule is BaseContract {
      * @dev Releases a milestone via the fallback mechanism
      * @param projectId Project ID
      */
-    function fallbackRelease(uint256 projectId) external {
+    function fallbackRelease(uint256 projectId) external virtual {
+        // CHECKS - Validate conditions
         Project storage project = projects[projectId];
         require(msg.sender == project.artist, "Only artist can trigger fallback");
         require(_canFallbackRelease(projectId), "Fallback delay not reached");
@@ -44,16 +45,21 @@ contract FallbackModule is BaseContract {
         require(!project.released, "Project already released");
         require(project.milestonesPaid < project.milestoneCount, "All milestones paid");
 
+        // Calculate milestone amount
         uint256 milestoneAmount = project.amount / project.milestoneCount;
+
+        // EFFECTS - Update state
         project.milestonesPaid++;
-        
         if (project.milestonesPaid == project.milestoneCount) {
             project.released = true;
         }
+        
+        // Emit event before external interaction
+        emit FallbackReleased(projectId, project.milestonesPaid);
 
+        // INTERACTIONS - Transfer ETH last
         (bool success, ) = payable(project.artist).call{value: milestoneAmount}("");
         require(success, "Transfer to artist failed");
-        emit FallbackReleased(projectId, project.milestonesPaid);
     }
 
     /**

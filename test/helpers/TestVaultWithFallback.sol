@@ -1,16 +1,27 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
-import {BaseContract} from "../../contracts/BaseContract.sol";
-import {EscrowContract} from "../../contracts/EscrowContract.sol";
-import {IFallbackModule} from "../../contracts/interfaces/IFallbackModule.sol";
+import "../../contracts/BaseContract.sol";
+import "../../contracts/EscrowContract.sol";
+import "../../contracts/ValidationContract.sol";
 
 /**
  * @title TestVaultWithFallback
  * @dev Minimal vault contract to test fallback release logic in isolation.
  */
-contract TestVaultWithFallback is BaseContract, EscrowContract {
+contract TestVaultWithFallback is BaseContract, EscrowContract, ValidationContract {
+    event FallbackReleased(uint256 indexed projectId, uint256 milestoneIndex);
+    event ProjectCreated(
+        uint256 indexed projectId,
+        address indexed client,
+        address indexed artist,
+        uint256 amount,
+        uint256 milestoneCount
+    );
+
     uint256 public mockTime;
+
+    mapping(address => bool) public isClient;
 
     /// @dev Use mock time for tests
     function getCurrentTime() public view returns (uint256) {
@@ -49,22 +60,36 @@ contract TestVaultWithFallback is BaseContract, EscrowContract {
         projectCount++;
     }
 
+    function addClient(address client) external {
+        isClient[client] = true;
+    }
+
     /// @dev Deposits funds for an existing project
-    function depositFunds(address _artist, uint256 _milestoneCount) external payable override {
-        require(_artist != address(0), "Invalid artist address");
+    function createProjectWithFunds(address payable artist, uint256 milestoneCount) external payable {
+        require(isClient[msg.sender], "Only client can deposit funds");
+        require(artist != address(0), "Invalid artist address");
         require(msg.value > 0, "Amount must be > 0");
-        require(_milestoneCount > 0, "Milestone count must be greater than zero");
-
-        // Update existing project
-        Project storage project = projects[0]; // For test simplicity, always use project 0
-        require(project.client == msg.sender, "Only client can deposit funds");
-        require(project.artist == _artist, "Artist mismatch");
-        require(project.milestoneCount == _milestoneCount, "Milestone count mismatch");
-        require(project.amount == 0, "Funds already deposited");
-
-        project.amount = msg.value;
-
-        emit FundsDeposited(0, msg.sender, _artist, msg.value);
+        require(milestoneCount > 0, "Milestone count must be > 0");
+        
+        uint256 projectId = projectCount;
+        projects[projectId] = Project({
+            client: msg.sender,
+            artist: artist,
+            validator: address(0),
+            amount: msg.value,
+            milestoneCount: milestoneCount,
+            milestonesPaid: 0,
+            createdAt: block.timestamp,
+            validated: false,
+            released: false,
+            useFallback: false,
+            fallbackDelay: 0,
+            useSignature: false
+        });
+        
+        projectCount++;
+        
+        emit ProjectCreated(projectId, msg.sender, artist, msg.value, milestoneCount);
     }
 
     /// @dev Allows setting fallback configuration (e.g. delay)
@@ -73,37 +98,45 @@ contract TestVaultWithFallback is BaseContract, EscrowContract {
         projects[projectId].fallbackDelay = fallbackDelay;
     }
 
-    /// @dev Implementation of fallback release
-    function fallbackRelease(uint256 projectId) external {
+    function setFallbackConfig(uint256 projectId, bool useFallback, uint256 delay) external {
         Project storage project = projects[projectId];
-        
-        // Check project exists and is not fully released
-        require(project.client != address(0), "Project does not exist");
+        require(msg.sender == project.client, "Only client can configure fallback");
+        project.useFallback = useFallback;
+        project.fallbackDelay = delay;
+    }
+
+    function _canFallbackRelease(uint256 projectId) internal view returns (bool) {
+        Project storage project = projects[projectId];
+        if (!project.useFallback || project.fallbackDelay == 0) {
+            return false;
+        }
+        // Add a 5-minute safety margin to account for minor timestamp variations
+        return block.timestamp >= project.createdAt + project.fallbackDelay + 5 minutes;
+    }
+
+    function fallbackRelease(uint256 projectId) external {
+        // CHECKS - Validate conditions
+        Project storage project = projects[projectId];
+        require(msg.sender == project.artist, "Only artist can trigger fallback");
+        require(_canFallbackRelease(projectId), "Fallback delay not reached");
+        require(project.validated, "Project must be validated");
         require(!project.released, "Project already released");
+        require(project.milestonesPaid < project.milestoneCount, "All milestones paid");
+
+        // Calculate milestone amount
+        uint256 milestoneAmount = project.amount / project.milestoneCount;
+
+        // EFFECTS - Update state
+        project.milestonesPaid++;
+        if (project.milestonesPaid == project.milestoneCount) {
+            project.released = true;
+        }
         
-        // Only client can trigger fallback
-        require(msg.sender == project.client, "Only client can trigger fallback");
-        
-        // Check fallback is enabled
-        require(project.useFallback, "Fallback not enabled for project");
-        
-        // Check fallback delay
-        require(
-            getCurrentTime() >= project.fallbackDelay,
-            "Fallback delay not met"
-        );
-        
-        // Release all remaining milestones
-        uint256 remainingMilestones = project.milestoneCount - project.milestonesPaid;
-        uint256 amountPerMilestone = project.amount / project.milestoneCount;
-        
-        // Transfer remaining funds to artist
-        uint256 totalAmount = remainingMilestones * amountPerMilestone;
-        (bool success, ) = project.artist.call{value: totalAmount}("");
+        // Emit event before external interaction
+        emit FallbackReleased(projectId, project.milestonesPaid);
+
+        // INTERACTIONS - Transfer ETH last
+        (bool success, ) = payable(project.artist).call{value: milestoneAmount}("");
         require(success, "Transfer to artist failed");
-        
-        // Update project state
-        project.milestonesPaid = project.milestoneCount;
-        project.released = true;
     }
 } 
