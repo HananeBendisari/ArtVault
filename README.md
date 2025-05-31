@@ -134,6 +134,18 @@ Contact me on LinkedIn or open an issue to start a discussion.
 - GitHub: [https://github.com/HananeBendisari/ArtVault](https://github.com/HananeBendisari/ArtVault)  
 - LinkedIn: [https://www.linkedin.com/in/hanane-bendisari](https://www.linkedin.com/in/hanane-bendisari)
 
+## Learn More
+
+| Document | Purpose |
+|------------|------------|
+| [README-project.md](docs/README-project.md) | Simplified overview for non-devs and general audiences |
+| [README-technical.md](docs/README-technical.md) | Full breakdown of contract architecture, testing, and logic |
+| [Glossary.md](docs/Glossary.md) | Definitions of key concepts (client, oracle, validator...) |
+
+These documents live in the `docs/` folder and are updated alongside the main project.  
+Feel free to explore and suggest improvements via issues or pull requests.
+
+
 ## License
 
 This project is licensed under the **MIT License**.
