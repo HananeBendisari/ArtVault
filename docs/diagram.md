@@ -1,66 +1,67 @@
-# ArtVault Workflow Diagram
+# 🔁 ArtVault Workflow Diagram
 
-This diagram illustrates the complete workflow of the ArtVault protocol, showing interactions between all participants (Client, Artist, Validator, Oracle) and the different paths for milestone validation and release.
+This diagram illustrates the complete workflow of the ArtVault protocol, showing interactions between all participants (Client, Artist, Validator, Oracle, Forte) and the different paths for milestone validation and release.
 
 ```mermaid
 sequenceDiagram
     participant Client
+    participant ForteIdentity
     participant ArtVault
     participant Validator
     participant Oracle
     participant Artist
 
     %% Initial Setup
+    Client->>ForteIdentity: verifyKYC()
+    ForteIdentity-->>ArtVault: accessLevel = 3
     Client->>ArtVault: depositFunds(artist, milestoneCount)
-    Note over ArtVault: Funds locked in contract
+    Note over ArtVault: Funds locked in escrow
 
     %% Validator Assignment
     Client->>ArtVault: addValidator(validator)
-    Note over ArtVault: Validator registered
+    Note over ArtVault: Validator assigned
 
     %% Validation Phase
     alt Manual Validation
         Validator->>ArtVault: validateProject()
-    else Oracle Validation
+    else Oracle-Based Validation
         Oracle->>ArtVault: triggerValidation()
     end
-    Note over ArtVault: Project validated
+    Note over ArtVault: Project marked as validated
 
     %% Milestone Release Phase
     loop For each milestone
-        alt Normal Release
+        alt Manual Release
             Client->>ArtVault: releaseMilestone()
-        else Oracle-Triggered
+        else Oracle Release
             Oracle->>ArtVault: triggerRelease()
-        else Fallback Release
-            Note over ArtVault: Fallback delay exceeded
+        else Fallback Logic
+            Note over ArtVault: Delay exceeded, fallback triggered
             Artist->>ArtVault: fallbackRelease()
         end
-        ArtVault->>Artist: Transfer milestone payment
+        ArtVault->>Artist: send ETH
     end
 
-    %% Dispute Handling (can occur anytime before full release)
-    opt Dispute Flow
+    %% Dispute Handling
+    opt Dispute Opened
         Client->>ArtVault: openDispute()
         Note over ArtVault: Payments paused
-        Note over Client, Validator: Resolution process
+        Note over Client, Validator: Dispute resolution
     end
 
-    %% Project Completion
-    Note over ArtVault: All milestones paid
-    Note over Client, Artist: Project completed
+    %% Completion
+    Note over ArtVault: All milestones completed
+    Note over Client, Artist: Project finalized
 ```
 
 ## Diagram Explanation
 
-1. **Initial Setup**: Client deposits funds and specifies milestone count
-2. **Validator Assignment**: A validator is assigned to oversee the project
-3. **Validation**: Can happen either manually by validator or automatically via oracle
-4. **Milestone Release**: Three possible paths
-   - Normal: Client triggers release
-   - Oracle-Triggered: Automatic release based on conditions
-   - Fallback: Artist can claim after delay
-5. **Dispute Handling**: Optional flow that can be triggered by client
-6. **Completion**: Project ends when all milestones are paid
+1. **KYC Verification**: Client is verified through ForteIdentity before initiating project.
+2. **Initial Setup**: Client deposits ETH and defines milestones.
+3. **Validator Assignment**: A trusted validator is added.
+4. **Validation**: Happens either manually or through oracle logic (e.g., timestamp).
+5. **Milestone Release**: Can be manual, oracle-triggered, or fallback-based.
+6. **Dispute Handling**: Client may pause further payments if an issue arises.
+7. **Completion**: Project ends when all milestones are released.
 
-This diagram can be rendered on GitHub or any Mermaid-compatible viewer. 
+> Render this diagram using [Mermaid](https://mermaid.js.org/) or directly in compatible GitHub markdown preview.

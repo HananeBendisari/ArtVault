@@ -17,7 +17,7 @@ in a fully tested, gas-efficient Solidity design.
 * **Validator System** – Only assigned validator can approve project
 * **Refund System** – Refund only if no milestone released
 * **Oracle-Gated Releases** – Milestone release gated by time or external conditions (e.g. concert date, event trigger), using overrideable oracle logic (Chainlink, Gelato, or ForteRules)
-* **Forte Integration** – Optional rule engine, KYC layer, and fiat-to-crypto support
+* **Forte Integration** – Rule engine and KYC compliance ready; fiat integration planned
 * **Dispute Flagging** – Clients can flag disputes and track their status
 * **Modular Contracts** – Separation of concerns: [Escrow / Validation / Oracle / Dispute](./contracts/ArtVault.sol)
 * **Fraud Protection (Planned)** – Upcoming checks to detect suspicious behavior or double-spend attempts via override modules
@@ -41,7 +41,7 @@ Use cases include:
 
 ### KYC / Identity Compliance (Forte Identity)
 
-ArtVault includes a `ForteUserRegistry` to store on-chain KYC statuses (e.g., `isKYCVerified[address] = true`), updated by a backend connected to Forte Identity APIs.
+ArtVault reads on-chain KYC levels directly from Forte’s public Compliance contract (Base Sepolia), using getAccessLevel(address) for transparent enforcement of access levels.
 
 This enables:
 
@@ -51,7 +51,7 @@ This enables:
 
 ### FortePay (Planned Integration)
 
-FortePay will allow clients to pay using **fiat (card, ACH, etc.)**, while artists or freelancers receive **ETH or stablecoins** via ArtVault.
+FortePay is planned for integration. Fiat-based deposits would be routed to ArtVault through a backend relay or wallet bridge, while artists or freelancers receive **ETH or stablecoins** via ArtVault.
 Funds can be escrowed until conditions are met (validator, time, or ForteRules).
 
 > This creates a **Web2-friendly onramp** into secure, milestone-based Web3 payments — ideal for DAOs, music agencies, grant platforms, and more.
@@ -63,11 +63,11 @@ ArtVault’s architecture is modular and supports both **logic layers (Forte)** 
 | Layer                  | Purpose                                                                          |
 | ---------------------- | -------------------------------------------------------------------------------- |
 | **ForteRules**         | Business logic / compliance gating (`canRelease`)                                |
-| **ForteIdentity**      | KYC status for users                                                             |
+| **ForteIdentity**      | On-chain access level (ACL) compliance check via Base Sepolia                                                             |
 | **FortePay**           | Fiat-to-crypto escrow routing                                                    |
 | **Chainlink / Gelato** | Time-based or data-driven release triggers (concert over, deadline passed, etc.) |
 
-> Docs: [ForteRulesEngine v2](https://docs.forterulesengine.io/v2/quickstart)
+> Docs: Forte KYC verification and access level contract are live on Base Sepolia. RulesEngine logic is currently mocked in ArtVault, with planned backend relay integration.
 
 ## Example Use Cases
 

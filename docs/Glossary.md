@@ -9,9 +9,11 @@
 | **Escrow**         | The core logic that holds and releases funds based on conditions            |
 | **Refund**         | Triggered by the client if no milestone was released                        |
 | **Dispute**        | Raised by the client in case of issues during execution                     |
-| **Oracle**         | An external trigger (e.g., concert ended) controlling automatic release     |
+| **Oracle**         | An external contract triggering automatic release (e.g., time-based)        |
 | **Override Logic** | A pattern that allows the oracle to replace manual actions                  |
 | **Fallback Logic** | Triggers an action if nothing is done (e.g. after X days)                   |
+| **ForteRules**     | On-chain rule engine for programmable milestone gating                      |
+| **Forte Identity** | KYC layer using an Access Level contract on Base Sepolia                    |
 | **SealThisDeal**   | Planned lightweight UI for sharing and triggering milestones                |
 | **ArtVault.sol**   | The composed main contract using all modules                                |
 | **Foundry**        | Solidity dev tool used for testing, fuzzing, profiling                      |

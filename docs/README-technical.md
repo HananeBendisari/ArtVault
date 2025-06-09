@@ -4,11 +4,11 @@
 
 ArtVault is built as a layered system of Solidity contracts, designed to flexibly support complex, real-world milestone payment flows.
 
-It also supports integration with **Forte's infrastructure** (FortePay and ForteRules), enabling:
+It also supports integration with **Forte's infrastructure** (FortePay, ForteRules, and Forte Identity), enabling:
 
-* **Fiat payments** from Web2 clients (via FortePay)
+* **Fiat payments** from Web2 clients (via FortePay – planned)
 * **Rule-based milestone enforcement** (via ForteRules Engine)
-* **KYC-gated releases**, suitable for grants or public-sector work
+* **KYC-gated releases**, suitable for grants or public-sector work (via Forte Identity)
 * **Fraud prevention via programmable policies**
 
 This makes ArtVault suitable for workflows where crypto can't be forced on users, and where validation + compliance are essential.
@@ -28,6 +28,7 @@ This makes ArtVault suitable for workflows where crypto can't be forced on users
 * **Access Control:** Explicit modifiers like `onlyClient`, `onlyValidator`, `onlyOracle`
 * **Event-Driven Flow:** Milestone progress tracked via emitted events
 * **Oracle Override Logic:** Allows controlled automation triggers
+* **External Compliance Checks:** On-chain KYC via Forte’s Access Control Level contract on Base Sepolia
 
 ## Security Considerations
 
@@ -35,6 +36,7 @@ This makes ArtVault suitable for workflows where crypto can't be forced on users
 * Milestone release guarded by validation status + oracle rules
 * Refund logic blocks if any funds were released
 * State machine approach to prevent incorrect transitions
+* On-chain ACL enforced via `getAccessLevel(address)` from Forte Compliance contract
 
 ## Testing Strategy
 
@@ -51,6 +53,8 @@ This makes ArtVault suitable for workflows where crypto can't be forced on users
 * Multi-chain deployment
 * Factory deployer for project instances
 * Minimal front-end (SealThisDeal)
+* FortePay backend relay integration (Fiat-to-crypto routing)
+* Full integration with live ForteRules and Identity APIs
 
 For test instructions and gas metrics: see [`README-tests.md`](README-tests.md)
 
