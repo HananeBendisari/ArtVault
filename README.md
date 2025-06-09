@@ -22,13 +22,13 @@ in a fully tested, gas-efficient Solidity design.
 * **Modular Contracts** – Separation of concerns: [Escrow / Validation / Oracle / Dispute](./contracts/ArtVault.sol)
 * **Fraud Protection (Planned)** – Upcoming checks to detect suspicious behavior or double-spend attempts via override modules
 
-## 🧳️ Forte Integration – Rules, KYC & Fiat Payments
+## Forte Integration – Rules, KYC & Fiat Payments
 
 ArtVault is designed to work **natively with Forte's stack**, enabling compliant, rule-based and fiat-enabled creative payments.
 
 While ArtVault remains modular and usable with any oracle or logic layer, it offers **first-class compatibility with Forte's infrastructure**:
 
-### ✅ ForteRules Engine (SDK v2)
+### ForteRules Engine (SDK v2)
 
 ArtVault integrates a pluggable `ForteRulesModule` that simulates and validates per-project release conditions.
 Use cases include:
@@ -39,7 +39,7 @@ Use cases include:
 
 > ArtVault validates milestone releases based on logic defined in the ForteRules Engine, while remaining overrideable and testable on-chain.
 
-### ✅ KYC / Identity Compliance (Forte Identity)
+### KYC / Identity Compliance (Forte Identity)
 
 ArtVault includes a `ForteUserRegistry` to store on-chain KYC statuses (e.g., `isKYCVerified[address] = true`), updated by a backend connected to Forte Identity APIs.
 
@@ -49,14 +49,14 @@ This enables:
 * KYC-verified payout flows
 * Grant compliance and public institution trust
 
-### ✅ FortePay (Planned Integration)
+### FortePay (Planned Integration)
 
 FortePay will allow clients to pay using **fiat (card, ACH, etc.)**, while artists or freelancers receive **ETH or stablecoins** via ArtVault.
 Funds can be escrowed until conditions are met (validator, time, or ForteRules).
 
 > This creates a **Web2-friendly onramp** into secure, milestone-based Web3 payments — ideal for DAOs, music agencies, grant platforms, and more.
 
-## 🧫 Combined Automation: Forte + Chainlink / Gelato
+## Combined Automation: Forte + Chainlink / Gelato
 
 ArtVault’s architecture is modular and supports both **logic layers (Forte)** and **automation layers (Chainlink / Gelato)**.
 
@@ -69,7 +69,7 @@ ArtVault’s architecture is modular and supports both **logic layers (Forte)** 
 
 > Docs: [ForteRulesEngine v2](https://docs.forterulesengine.io/v2/quickstart)
 
-## ⚡️ Example Use Cases
+## Example Use Cases
 
 * **Live Performance**: Automatic payment release once the concert ends (based on timestamp or Forte validation)
 * **Physical Delivery**: Package tracked via delivery status → triggers milestone release (via oracle or Forte rule)
@@ -78,7 +78,7 @@ ArtVault’s architecture is modular and supports both **logic layers (Forte)** 
 * **Fallback Logic** *(planned)*: Auto-release if no validation after X days (using Chainlink + Forte)
 * **Fraud Protection** *(planned)*: Detect replay attempts, duplicate releases, or identity spoofing
 
-## ⚡️ Oracle Integration
+## Oracle Integration
 
 ArtVault supports time-based and rule-based milestone releases via external oracles and logic engines (Chainlink, Gelato, Forte).
 When the `oracleModule` is enabled via `setProjectConfig`, `releaseMilestone` may be triggered externally.
