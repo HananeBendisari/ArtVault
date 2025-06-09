@@ -1,8 +1,19 @@
-# 📘 Technical Documentation – ArtVault
+# Technical Documentation – ArtVault
 
 ## Architecture Overview
 
-ArtVault is composed of modular contracts layered together in `ArtVault.sol`:
+ArtVault is built as a layered system of Solidity contracts, designed to flexibly support complex, real-world milestone payment flows.
+
+It also supports integration with **Forte's infrastructure** (FortePay and ForteRules), enabling:
+
+* **Fiat payments** from Web2 clients (via FortePay)
+* **Rule-based milestone enforcement** (via ForteRules Engine)
+* **KYC-gated releases**, suitable for grants or public-sector work
+* **Fraud prevention via programmable policies**
+
+This makes ArtVault suitable for workflows where crypto can't be forced on users, and where validation + compliance are essential.
+
+**Contract composition:**
 
 * `BaseContract.sol`: Shared state, events, modifiers
 * `EscrowContract.sol`: Core logic — deposits, releases, refunds
@@ -45,5 +56,5 @@ For test instructions and gas metrics: see [`README-tests.md`](README-tests.md)
 
 ---
 
-📎 For a simplified explanation, see [README-project.md](./README-project.md)
-📎 For term definitions, see [Glossary.md](./Glossary.md)
+📌 For a simplified explanation, see [README-project.md](./README-project.md)
+📌 For term definitions, see [Glossary.md](./Glossary.md)

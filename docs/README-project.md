@@ -4,9 +4,28 @@
 
 ### Core Idea
 
+```mermaid
+flowchart LR
+    A[Client (Fiat)] -->|FortePay| B(Fiat Payment)
+    B -->|Conversion| C[Escrow (ETH / stablecoin)]
+    C -->|releaseMilestone()| D[Artist Wallet]
+    style B fill:#f9f,stroke:#333,stroke-width:2px
+    style C fill:#bbf,stroke:#333,stroke-width:2px
+```
+
+ArtVault allows a client to deposit ETH into a smart contract, then release funds step-by-step as each milestone is validated — either manually, via oracle, or via automation. It is inspired by real-world frictions in freelance payments: late payments, unclear delivery, disputes, and lack of automation.
+
+By integrating with Forte's fiat and compliance infrastructure, ArtVault can be used **without forcing crypto usage on clients**, enabling broader adoption in Web2-facing contexts like grants, agencies, or public contracts.
+
+ArtVault allows a client to deposit ETH into a smart contract, then release funds step-by-step as each milestone is validated — either manually, via oracle, or via automation. It is inspired by real-world frictions in freelance payments: late payments, unclear delivery, disputes, and lack of automation.
+
+By integrating with Forte's fiat and compliance infrastructure, ArtVault can be used **without forcing crypto usage on clients**, enabling broader adoption in Web2-facing contexts like grants, agencies, or public contracts.
+
 ArtVault allows a client to deposit ETH into a smart contract, then release funds step-by-step as each milestone is validated — either manually, via oracle, or via automation. It is inspired by real-world frictions in freelance payments: late payments, unclear delivery, disputes, and lack of automation.
 
 ### Key Use Cases
+
+ArtVault is fully compatible with **Forte’s infrastructure** (Rules Engine, Identity, and FortePay), allowing for rule-based releases, KYC verification, and fiat-to-crypto flow when needed.
 
 * **Live Performance:** Automatic payment once the concert ends
 * **Package Delivery:** Milestone triggers once delivery status is confirmed (via oracle)
@@ -26,7 +45,7 @@ ArtVault is built using modular Solidity contracts:
 
 ### Ready for:
 
-* Smart automation (Chainlink, Gelato)
+* Smart automation (Chainlink, Gelato, ForteRules)
 * Complex flows (fallbacks, overrides, disputes)
 * UI integrations (SealThisDeal)
 * Multi-project and factory setups
