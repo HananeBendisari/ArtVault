@@ -21,18 +21,11 @@ releaseMilestone()
    │
    ▼
 Artist Wallet (on-chain)
-
 ```
 
-ArtVault allows a client to deposit ETH into a smart contract, then release funds step-by-step as each milestone is validated — either manually, via oracle, or via automation. It is inspired by real-world frictions in freelance payments: late payments, unclear delivery, disputes, and lack of automation.
+ArtVault enables clients to initiate milestone-based projects, where funds are held securely and released progressively as each milestone is validated. Validation can be manual (validator approval), automatic (oracle or timed triggers), or fallback-based.
 
-By integrating with Forte's fiat and compliance infrastructure, ArtVault can be used **without forcing crypto usage on clients**, enabling broader adoption in Web2-facing contexts like grants, agencies, or public contracts.
-
-ArtVault allows a client to deposit ETH into a smart contract, then release funds step-by-step as each milestone is validated — either manually, via oracle, or via automation. It is inspired by real-world frictions in freelance payments: late payments, unclear delivery, disputes, and lack of automation.
-
-By integrating with Forte's fiat and compliance infrastructure, ArtVault can be used **without forcing crypto usage on clients**, enabling broader adoption in Web2-facing contexts like grants, agencies, or public contracts.
-
-ArtVault allows a client to deposit ETH into a smart contract, then release funds step-by-step as each milestone is validated — either manually, via oracle, or via automation. It is inspired by real-world frictions in freelance payments: late payments, unclear delivery, disputes, and lack of automation.
+By integrating with Forte's fiat and compliance infrastructure, ArtVault eliminates the need for clients to directly handle crypto. Payments can start in fiat (via FortePay), then be converted off-chain into ETH or stablecoins for secure on-chain execution.
 
 ### Key Use Cases
 

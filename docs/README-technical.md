@@ -6,7 +6,7 @@ ArtVault is built as a layered system of Solidity contracts, designed to flexibl
 
 It also supports integration with **Forte's infrastructure** (FortePay, ForteRules, and Forte Identity), enabling:
 
-* **Fiat payments** from Web2 clients (via FortePay – planned)
+* **Fiat payments** routed through FortePay backend relay (planned)
 * **Rule-based milestone enforcement** (via ForteRules Engine)
 * **KYC-gated releases**, suitable for grants or public-sector work (via Forte Identity)
 * **Fraud prevention via programmable policies**
@@ -55,8 +55,9 @@ This makes ArtVault suitable for workflows where crypto can't be forced on users
 * Minimal front-end (SealThisDeal)
 * FortePay backend relay integration (Fiat-to-crypto routing)
 * Full integration with live ForteRules and Identity APIs
+* KYC badge UI display – Allow frontend to check and show KYC level from ACL contract
 
-For test instructions and gas metrics: see [`README-tests.md`](README-tests.md)
+For test instructions, unit coverage, fuzzing results, and gas metrics: see [`README-tests.md`](README-tests.md)
 
 ---
 
