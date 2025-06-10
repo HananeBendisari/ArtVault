@@ -6,6 +6,7 @@ import "../contracts/ArtVault.sol";
 import "../contracts/MockOracle.sol";
 import { TestVaultWithOracleOverride } from "./helpers/TestVaultWithOracleOverride.sol";
 import "./helpers/TestHelper.sol";
+import {EscrowContract} from "../contracts/EscrowContract.sol";
 
 /**
  * @title FuzzDeposit

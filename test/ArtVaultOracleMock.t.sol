@@ -5,6 +5,7 @@ import "forge-std/Test.sol";
 import "../contracts/ArtVaultOracleMock.sol";
 import {TestVaultWithOracleOverride} from "./helpers/TestVaultWithOracleOverride.sol";
 import {TestHelper} from "./helpers/TestHelper.sol";
+import {BaseContract} from "../contracts/BaseContract.sol";
 
 /**
  * @title ArtVaultOracleMockTest

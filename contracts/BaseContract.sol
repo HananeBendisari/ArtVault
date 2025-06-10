@@ -3,6 +3,9 @@ pragma solidity ^0.8.19;
 
 import "./interfaces/IOracle.sol";
 
+interface IForteCompliance {
+    function getAccessLevel(address user) external view returns (uint256);
+}
 
 /**
  * @title BaseContract
@@ -27,6 +30,9 @@ contract BaseContract {
     mapping(uint256 => Project) public projects;
     uint256 public projectCount;
 
+    IForteCompliance public forteCompliance;
+    uint256 public constant REQUIRED_KYC_LEVEL = 3;
+
     event FundsDeposited(uint256 projectId, address indexed client, address indexed artist, uint256 amount);
     event FundsReleased(uint256 projectId, address indexed artist, uint256 amount);
     event FundsRefunded(uint256 projectId, address indexed client);
@@ -35,12 +41,17 @@ contract BaseContract {
     event ClientRefunded(uint256 projectId, address indexed client, uint256 amount);
     event MilestoneReleased(uint256 projectId, uint256 milestoneIndex, uint256 amount);
 
+    error ProjectDoesNotExist();
+    error OnlyClient();
+    error OnlyAssignedValidator();
+    error KYCNotApproved();
+
     /**
      * @dev Modifier to ensure the project exists.
      * @param _projectId The ID of the project.
      */
     modifier projectExists(uint256 _projectId) {
-        require(projects[_projectId].client != address(0), "Error: Project does not exist.");
+        if (projects[_projectId].client == address(0)) revert ProjectDoesNotExist();
         _;
     }
 
@@ -49,7 +60,7 @@ contract BaseContract {
      * @param _projectId The ID of the project.
      */
     modifier onlyClient(uint256 _projectId) {
-        require(msg.sender == projects[_projectId].client, "Error: Only the client can perform this action.");
+        if (msg.sender != projects[_projectId].client) revert OnlyClient();
         _;
     }
 
@@ -58,14 +69,35 @@ contract BaseContract {
      * @param _projectId The ID of the project.
      */
     modifier onlyValidator(uint256 _projectId) {
-        require(msg.sender == projects[_projectId].validator, "Error: Only the assigned validator can perform this action.");
+        if (msg.sender != projects[_projectId].validator) revert OnlyAssignedValidator();
         _;
     }
 
     /**
-    * @dev Returns all details of a project.
-    * @param _projectId The ID of the project.
-    */
+     * @dev Modifier to restrict access to KYC-verified users.
+     */
+    modifier onlyKYCApproved() {
+        if (!isKYCApproved(msg.sender)) revert KYCNotApproved();
+        _;
+    }
+
+    /**
+     * @dev Returns true if the user's KYC level is sufficient.
+     */
+    function isKYCApproved(address user) public view returns (bool) {
+        return forteCompliance.getAccessLevel(user) >= REQUIRED_KYC_LEVEL;
+    }
+
+    /**
+     * @dev Sets the Forte compliance contract address.
+     */
+    function setForteCompliance(address _compliance) external {
+        forteCompliance = IForteCompliance(_compliance);
+    }
+
+    /**
+     * @dev Returns all details of a project.
+     */
     function getProject(uint256 _projectId)
         public
         view
@@ -100,12 +132,8 @@ contract BaseContract {
             p.createdAt
         );
     }
-    
+
     function getOracle() public view virtual returns (IOracle) {
         return IOracle(address(0));
     }
-
-
-    
-
 }

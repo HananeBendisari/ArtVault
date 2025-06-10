@@ -1,6 +1,7 @@
 ![Forge CI](https://github.com/HananeBendisari/ArtVault/actions/workflows/ci.yml/badge.svg)
 ![Tests](https://img.shields.io/badge/tests-100%25-green)
 ![Coverage](https://img.shields.io/badge/coverage-90%25-blue)
+![Gas Optimized](https://img.shields.io/badge/gas--optimized-yes-brightgreen)
 ![License](https://img.shields.io/github/license/HananeBendisari/ArtVault)
 ![Last Commit](https://img.shields.io/github/last-commit/HananeBendisari/ArtVault)
 
@@ -168,6 +169,7 @@ See [`README-tests.md`](README-tests.md) for:
 * **Payment Validation** - Enforced divisibility checks to prevent leftover wei
 * **Emergency Pause** - Global pause mechanism with `whenNotPaused` modifier on critical functions
 * **Access Control** - Strict modifiers (`onlyClient`, `onlyValidator`) and timing guards
+* **Custom Errors** – All `require(..., "message")` statements replaced with [Solidity custom errors](https://docs.soliditylang.org/en/latest/control-structures.html#custom-errors) for lower gas usage and stricter revert handling
 * **Comprehensive Testing** - Over 50 unit and fuzz tests with 100% pass rate using `forge test --via-ir`
 
 ⚠️ **Important**: While extensively tested, the protocol has not undergone a formal third-party audit yet. It is intended for research and testing only.

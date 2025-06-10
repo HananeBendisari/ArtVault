@@ -4,6 +4,7 @@ pragma solidity ^0.8.19;
 import "forge-std/Test.sol";
 import "../contracts/ArtVault.sol";
 import "./helpers/TestHelper.sol";
+import {EscrowContract} from "../contracts/EscrowContract.sol";
 
 contract EscrowFuzzTest is Test {
     ArtVault vault;

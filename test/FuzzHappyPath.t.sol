@@ -5,6 +5,7 @@ import "forge-std/Test.sol";
 import "../contracts/interfaces/IOracle.sol";
 import "../test/helpers/MockOracle.sol";
 import "../test/helpers/TestVaultWithOracleOverride.sol";
+import {EscrowContract} from "../contracts/EscrowContract.sol";
 
 /**
 
@@ -49,7 +50,7 @@ vm.stopPrank();
 
  // Step 4: Refund attempt should fail after full release
  vm.prank(client);
- vm.expectRevert("Error: Cannot refund after full release");
+ vm.expectRevert(EscrowContract.CannotRefundAfterFullRelease.selector);
  vault.refundClient(0);
 }
 }

@@ -11,6 +11,9 @@ Client (Fiat)
 FortePay (off-chain fiat processor)
    │
    ▼
+[Fiat-to-crypto conversion happens off-chain]
+   │
+   ▼
 Converted Funds (ETH / stablecoin)
    │
    ▼
@@ -23,7 +26,7 @@ releaseMilestone()
 Artist Wallet (on-chain)
 ```
 
-ArtVault enables clients to initiate milestone-based projects, where funds are held securely and released progressively as each milestone is validated. Validation can be manual (validator approval), automatic (oracle or timed triggers), or fallback-based.
+ArtVault enables clients to initiate milestone-based projects, where funds are held securely and released progressively as each milestone is validated. Rule-based compliance checks (e.g., KYC or fraud rules) and dispute flows are supported when needed. Validation can be manual (validator approval), automatic (oracle or timed triggers), or fallback-based.
 
 By integrating with Forte's fiat and compliance infrastructure, ArtVault eliminates the need for clients to directly handle crypto. Payments can start in fiat (via FortePay), then be converted off-chain into ETH or stablecoins for secure on-chain execution.
 
@@ -50,6 +53,7 @@ ArtVault is built using modular Solidity contracts:
 ### Ready for:
 
 * Smart automation (Chainlink, Gelato, ForteRules)
+* Fiat-to-crypto flow via FortePay (planned)
 * Complex flows (fallbacks, overrides, disputes)
 * UI integrations (SealThisDeal)
 * Multi-project and factory setups

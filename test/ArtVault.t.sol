@@ -6,6 +6,9 @@ import "../contracts/ArtVault.sol";
 import "./helpers/TestHelper.sol";
 import {TestVaultWithOracleOverride} from "./helpers/TestVaultWithOracleOverride.sol";
 import {MockOracle} from "./helpers/MockOracle.sol";
+import {EscrowContract} from "../contracts/EscrowContract.sol";
+import {BaseContract} from "../contracts/BaseContract.sol";
+import {ValidationContract} from "../contracts/ValidationContract.sol";
 
 
 
@@ -102,7 +105,7 @@ contract ArtVaultTest is Test {
         }
 
         vm.prank(client);
-        vm.expectRevert("Error: Cannot refund after full release");
+        vm.expectRevert(EscrowContract.CannotRefundAfterFullRelease.selector);
         vault.refundClient(0);
     }
 
@@ -123,7 +126,7 @@ contract ArtVaultTest is Test {
         vault.depositFunds{value: 3 ether}(artist, 3);
 
         vm.prank(address(0xBEEF));
-        vm.expectRevert("Error: Only the client can perform this action.");
+        vm.expectRevert(BaseContract.OnlyClient.selector);
         vault.addValidator(0, validator);
     }
 
@@ -149,7 +152,7 @@ contract ArtVaultTest is Test {
         vault.addValidator(0, validator);
 
         vm.prank(address(0xBEEF));
-        vm.expectRevert("Error: Only the assigned validator can perform this action.");
+        vm.expectRevert(BaseContract.OnlyAssignedValidator.selector);
         vault.validateProject(0);
     }
 
@@ -165,7 +168,7 @@ contract ArtVaultTest is Test {
         vault.releaseMilestone(0);
 
         vm.prank(validator);
-        vm.expectRevert("Project already validated.");
+        vm.expectRevert(ProjectAlreadyValidated.selector);
         vault.validateProject(0);
     }
 
@@ -182,7 +185,7 @@ contract ArtVaultTest is Test {
         vault.releaseMilestone(0);
 
         vm.prank(client);
-        vm.expectRevert("Error: Cannot refund after partial release");
+        vm.expectRevert(EscrowContract.CannotRefundAfterPartialRelease.selector);
         vault.refundClient(0);
     }
 
@@ -192,7 +195,7 @@ contract ArtVaultTest is Test {
         vault.depositFunds{value: 3 ether}(artist, 3);
 
         vm.prank(address(0xBEEF));
-        vm.expectRevert("Error: Only the client can perform this action.");
+        vm.expectRevert(BaseContract.OnlyClient.selector);
         vault.refundClient(0);
     }
 

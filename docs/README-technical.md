@@ -21,6 +21,8 @@ This makes ArtVault suitable for workflows where crypto can't be forced on users
 * `DisputeModule.sol`: Dispute status tracking post-release
 * `ArtVaultOracleMock.sol`: Simulates oracle-triggered flows
 * `TestVaultWithOracleOverride.sol`: Testing override-based execution
+* `DisputeModule.sol`: Dispute logic to freeze payments when issues are raised early
+
 
 ## Key Design Patterns
 
@@ -37,6 +39,8 @@ This makes ArtVault suitable for workflows where crypto can't be forced on users
 * Refund logic blocks if any funds were released
 * State machine approach to prevent incorrect transitions
 * On-chain ACL enforced via `getAccessLevel(address)` from Forte Compliance contract
+* Disputes can be opened by clients at any point before full fund release. Once open, further payments are blocked.
+
 
 ## Testing Strategy
 
@@ -50,6 +54,7 @@ This makes ArtVault suitable for workflows where crypto can't be forced on users
 * Chainlink/Gelato integration
 * Signature-based release confirmation
 * Fallback automation module
+* Dispute resolution flow (e.g., arbitration, manual settlement)
 * Multi-chain deployment
 * Factory deployer for project instances
 * Minimal front-end (SealThisDeal)

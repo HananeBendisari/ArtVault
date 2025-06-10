@@ -6,6 +6,7 @@ import "../contracts/ArtVault.sol";
 import {TestVaultWithOracleOverride} from "./helpers/TestVaultWithOracleOverride.sol";
 import {MockOracle} from "./helpers/MockOracle.sol";
 import {IForteRules} from "../contracts/interfaces/IForteRules.sol";
+import {BaseContract} from "../contracts/BaseContract.sol";
 
 /**
  * @title ArtVault_ConfigTest

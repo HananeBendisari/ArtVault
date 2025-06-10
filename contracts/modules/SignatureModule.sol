@@ -1,6 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
+error SignatureModuleNotEnabled();
+error OnlyClientOrArtistCanSign();
+error AlreadySigned();
+
 import "../BaseContract.sol";
 
 /**
@@ -27,9 +31,9 @@ contract SignatureModule is BaseContract {
      */
     function confirmSignature(uint256 projectId) external {
         Project storage project = projects[projectId];
-        require(project.useSignature, "Signature module not enabled");
-        require(msg.sender == project.client || msg.sender == project.artist, "Only client or artist can sign");
-        require(!signatures[projectId][msg.sender], "Already signed");
+        if (!project.useSignature) revert SignatureModuleNotEnabled();
+        if (msg.sender != project.client && msg.sender != project.artist) revert OnlyClientOrArtistCanSign();
+        if (signatures[projectId][msg.sender]) revert AlreadySigned();
 
         signatures[projectId][msg.sender] = true;
         emit SignatureConfirmed(msg.sender, projectId);

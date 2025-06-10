@@ -5,7 +5,7 @@ import "../BaseContract.sol";
 
 /**
  * @title DisputeModule
- * @dev Adds dispute logic to ArtVault projects.
+ * @dev Adds dispute logic to ArtVault projects. Allows clients to flag issues and freeze future payments.
  */
 contract DisputeModule is BaseContract {
     enum DisputeStatus { None, Open, Resolved }
@@ -22,24 +22,19 @@ contract DisputeModule is BaseContract {
     event DisputeOpened(uint256 indexed projectId, address indexed initiator, string reason);
 
     /**
-     * @dev Opens a dispute for a given project.
+     * @notice Opens a dispute for a given project.
+     * @dev Allowed as long as project is not fully released.
      * @param _projectId The ID of the project.
-     * @param _reason Reason for the dispute.
+     * @param _reason The reason for dispute initiation.
      */
     function openDispute(uint256 _projectId, string memory _reason)
         public
         projectExists(_projectId)
         onlyClient(_projectId)
     {
-        // Forbid dispute after full release
-        if (projects[_projectId].released) {
-            revert("Error: Cannot open dispute after full release");
-        }
-        // Forbid dispute after partial release
-        if (projects[_projectId].milestonesPaid > 0) {
-            revert("Error: Cannot open dispute after partial release");
-        }
-        // Forbid double disputes
+        Project storage project = projects[_projectId];
+
+        require(!project.released, "Error: Cannot open dispute after full release");
         require(disputes[_projectId].status == DisputeStatus.None, "Error: Dispute already exists");
 
         disputes[_projectId] = Dispute({
@@ -53,12 +48,13 @@ contract DisputeModule is BaseContract {
     }
 
     /**
-     * @dev Returns dispute details for a project.
+     * @notice Returns dispute details for a given project.
+     * @param _projectId The ID of the project.
      */
     function getDispute(uint256 _projectId)
         public
         view
-        returns (address, string memory, uint256, DisputeStatus)
+        returns (address initiator, string memory reason, uint256 openedAt, DisputeStatus status)
     {
         Dispute memory d = disputes[_projectId];
         return (d.initiator, d.reason, d.openedAt, d.status);

@@ -5,6 +5,7 @@ import "forge-std/Test.sol";
 import "../contracts/MockOracle.sol";
 import { TestVaultWithOracleOverride } from "./helpers/TestVaultWithOracleOverride.sol";
 import { TestHelper } from "./helpers/TestHelper.sol";
+import {EscrowContract} from "../contracts/EscrowContract.sol";
 
 /**
  * @title FuzzReleaseMilestone

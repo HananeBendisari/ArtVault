@@ -4,6 +4,7 @@ pragma solidity ^0.8.19;
 import "forge-std/Test.sol";
 import "../contracts/MockOracle.sol";
 import { TestVaultWithOracleOverride } from "./helpers/TestVaultWithOracleOverride.sol";
+import {EscrowContract} from "../contracts/EscrowContract.sol";
 
 /**
  * @title FuzzRefund
@@ -44,7 +45,7 @@ contract FuzzRefund is Test {
 
         // Step 4: refund should now revert
         vm.prank(client);
-        vm.expectRevert("Error: Cannot refund after partial release");
+        vm.expectRevert(EscrowContract.CannotRefundAfterPartialRelease.selector);
         vault.refundClient(0);
     }
 }

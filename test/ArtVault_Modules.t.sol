@@ -6,6 +6,7 @@ import "../contracts/ArtVault.sol";
 import {MockOracle} from "./helpers/MockOracle.sol";
 import {MockForteRules} from "../contracts/mocks/MockForteRules.sol";
 import {TestHelper} from "./helpers/TestHelper.sol";
+import {EscrowContract} from "../contracts/EscrowContract.sol";
 
 /**
  * @title ArtVault_ModulesTest

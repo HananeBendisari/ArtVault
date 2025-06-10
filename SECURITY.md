@@ -2,47 +2,76 @@
 
 ## Overview
 
-ArtVault is an experimental smart contract protocol for milestone-based escrow payments. While the codebase is extensively tested and modular, it has not yet undergone a formal third-party audit.
+**ArtVault** is an experimental smart contract protocol for milestone-based escrow payments in the creative industry.
+
+While the codebase is modular and fully tested, it has **not undergone a third-party audit**. It is intended for research and education purposes only and **should not be used with real funds**.
+
+---
 
 ## Recent Security Improvements
 
-The protocol has recently undergone multiple internal security hardening steps:
+ArtVault has recently undergone several internal security upgrades:
 
-### 1. ETH Transfer Safety (`fix/security-1`)
-- Replaced all `transfer()` calls with low-level `call{value}()` and proper success checks
-- Improved robustness of artist payment flows
-- Affected modules: `FallbackModule`
+### 1. Safe On-Chain Payment Delivery (`fix/security-1`)
+- Replaced all `.transfer()` usages with low-level `call{value: ...}()` and proper success checks.
+- Ensures reliable ETH/stablecoin payouts to artists under all gas conditions.
+- Applies only **after fiat conversion by FortePay**, during the on-chain fund release.
+- **Modules affected:** `FallbackModule`
 
-### 2. Payment Validation
-- Enforced divisibility check on `amount % milestoneCount` to avoid leftover wei
-- Affected modules: `EscrowContract`, `BaseContract`
+---
 
-### 3. Emergency Pause (`fix/security-2`)
-- Added `pause()` / `unpause()` mechanism
-- Applied `whenNotPaused` modifier to critical functions
-- Affected modules: `ArtVault`
+### 2. Custom Errors Migration (`fix/security-3`)
+- Migrated all `require(..., "message")` to **custom Solidity errors** for gas efficiency.
+- Avoids string comparisons, improves bytecode readability and upgradeability.
+- **Modules affected:** all (`BaseContract`, `EscrowContract`, `ValidationContract`, etc.)
 
-### 4. Access Control & Timing Guards
-- Restored `onlyClient`, `onlyValidator` modifiers where missing
-- Introduced safety margin to fallback delays
-- Fixed inheritance and visibility issues
-- Affected modules: all core modules and test vaults
+---
 
-## Testing and Verification
+### 3. Payment Validation Logic
+- Enforced divisibility of escrow amount by milestone count to avoid wei leftovers.
+- **Modules affected:** `EscrowContract`, `BaseContract`
 
-- Full test suite executed using Foundry (`forge test --via-ir`)
-- Over 50 unit and fuzz tests
-- 100% pass rate across all test files
-- Edge cases covered: timestamp drift, invalid milestone configs, call reverts
+---
+
+### 4. Emergency Pause (`fix/security-2`)
+- Introduced `pause()` / `unpause()` mechanisms.
+- Applied `whenNotPaused` to all critical external functions (deposits, releases, validations).
+- **Modules affected:** `ArtVault`
+
+---
+
+### 5. Access Control & Guards
+- Re-audited `onlyClient`, `onlyValidator` modifiers across modules.
+- Introduced stricter checks in `addValidator`, `validateProject`, and refund/release flows.
+- **Modules affected:** all core modules and test helpers.
+
+---
+
+## Testing & Verification
+
+- Tests run with **Foundry** (`forge test --via-ir`)
+- ✅ **53 unit & fuzz tests passing**
+- Edge cases covered:
+  - Timestamp drift
+  - Invalid project configs
+  - Refund/release permission checks
+  - Oracle overrides & fallback
+
+---
 
 ## Responsible Disclosure
 
-If you discover a vulnerability or potential issue:
+If you discover a vulnerability or security flaw:
 
-- Email: HananeNec@proton.me  
+- Contact: [HananeNec@proton.me](mailto:HananeNec@proton.me)
+- Please **do not open public issues** related to security.
+- We appreciate private disclosure and will prioritize fixing any issues promptly.
 
-Please do not submit public GitHub issues related to security. Contact privately to allow time for patching.
+---
 
-## Disclaimer
+## ⚠️ Disclaimer
 
-This protocol is experimental and should not be used with real funds until a professional audit has been completed. It is intended for research, testing, and educational use only.
+ArtVault is an experimental protocol.  
+It should **not be used in production** or with real funds until it has been **formally audited** by an external firm.
+
+Use at your own risk.
