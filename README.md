@@ -2,7 +2,7 @@
 ![Tests](https://img.shields.io/badge/tests-100%25-green)
 ![Coverage](https://img.shields.io/badge/coverage-90%25-blue)
 ![Gas Optimized](https://img.shields.io/badge/gas--optimized-yes-brightgreen)
-![License](https://img.shields.io/github/license/HananeBendisari/ArtVault)
+![BUSL License](https://img.shields.io/badge/license-BUSL%201.1-blue)
 ![Last Commit](https://img.shields.io/github/last-commit/HananeBendisari/ArtVault)
 
 ## ArtVault – Decentralized Escrow for Creative Projects
@@ -268,4 +268,9 @@ Feel free to explore and suggest improvements via issues or pull requests.
 
 ## License
 
-This project is licensed under the **MIT License**.
+This project is licensed under the **Business Source License 1.1 (BUSL-1.1)**.  
+You are free to view, fork, and contribute to the code.
+
+🚫 **However, commercial use is prohibited** without explicit written permission.
+
+🕒 On **June 12, 2028**, this license will automatically convert to **Apache 2.0**.
