@@ -23,6 +23,55 @@ in a fully tested, gas-efficient Solidity design.
 * **Modular Contracts** – Separation of concerns: [Escrow / Validation / Oracle / Dispute](./contracts/ArtVault.sol)
 * **Fraud Protection (Planned)** – Upcoming checks to detect suspicious behavior or double-spend attempts via override modules
 
+## SealTheDeal – Instant, Secure, Artist-Friendly UX
+
+At the heart of **ArtVault** is a bold promise:
+
+> *Let artists and clients seal milestone-based contracts as easily as tapping their phones.*
+
+To fulfill this vision, we designed **SealTheDeal** — a lightweight mobile interface that turns complex Web3 flows into a **frictionless, intuitive experience**.
+
+Here's a preview of the mobile confirmation screen used just before sealing a deal:
+
+![Seal the Deal UI](./screenshots/seal-the-deal-ui-v1.png)
+
+---
+
+### What this screen does:
+
+* Confirms **Face ID** + **KYC Level 2** verification (artist identity is secured)
+* Offers a quick **View & Modify Contract** option before finalizing
+* Allows users to **tap their phones together** to trigger the deal
+* Closes the loop with a one-click **Seal the Deal** button
+
+---
+
+### Why this matters:
+
+Too many Web3 dApps feel like using a terminal.
+**SealTheDeal** takes a different path: it feels like Apple Pay — *but for smart contracts.*
+
+It’s designed for:
+
+* Artists on the go
+* Real-world collaboration (concerts, commissions, live performances)
+* Seamless finalization without losing trust or decentralization
+
+This UI sits on top of the **ArtVault** smart contract suite, enabling:
+
+* Milestone-based payments
+* Oracle automation (for delivery, performance, etc.)
+* Validator-controlled approval
+* Optional dispute resolution
+
+---
+
+### What’s next:
+
+We’re currently building and testing this interface as part of our v1 milestone.
+If you want to collaborate, contribute, or just follow along — [reach out on LinkedIn](https://www.linkedin.com/in/hanane-bendisari).
+
+
 ## Forte Integration – Rules, KYC & Fiat Payments
 
 ArtVault is designed to work **natively with Forte's stack**, enabling compliant, rule-based and fiat-enabled creative payments.
