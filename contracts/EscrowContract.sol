@@ -132,7 +132,7 @@ contract EscrowContract is BaseContract, ReentrancyGuard {
     /**
      * @dev Allows oracle or automation to release a milestone after a specific event (e.g., concert ended).
      * @param _projectId The ID of the project.
-     */
+    */
     function releaseAfterEvent(uint256 _projectId)
         public
         nonReentrant

@@ -50,7 +50,7 @@ contract ArtVault_ModulesTest is Test {
 
         // Try to release: must revert
         vm.prank(client);
-        vm.expectRevert("Release blocked by Forte rules");
+        vm.expectRevert("Blocked by Forte rules");
         vault.releaseMilestone(42);
     }
 

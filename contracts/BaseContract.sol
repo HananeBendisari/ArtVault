@@ -96,8 +96,8 @@ contract BaseContract {
     }
 
     /**
-     * @dev Returns all details of a project.
-     */
+    * @dev Returns all details of a project.
+    */
     function getProject(uint256 _projectId)
         public
         view
@@ -132,7 +132,7 @@ contract BaseContract {
             p.createdAt
         );
     }
-
+    
     function getOracle() public view virtual returns (IOracle) {
         return IOracle(address(0));
     }

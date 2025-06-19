@@ -20,7 +20,7 @@ contract FallbackModuleTest is Test {
     uint256 constant PROJECT_AMOUNT = 3 ether;
     uint256 constant MILESTONE_COUNT = 3;
     uint256 constant FALLBACK_DELAY = 1 days;
-    
+
     // Events to test
     event FallbackReleased(uint256 indexed projectId, uint256 milestoneIndex);
     
@@ -38,7 +38,7 @@ contract FallbackModuleTest is Test {
         vm.deal(client, 10 ether);
         
         // Setup client role
-        vm.prank(client);
+    vm.prank(client);
         vault.addClient(client);
         
         // Setup initial project
@@ -118,5 +118,5 @@ contract FallbackModuleTest is Test {
         
         // Verify the transfer failed as expected
         assertEq(address(maliciousArtist).balance, 0, "Malicious artist should not receive any ETH");
-    }
+}
 } 

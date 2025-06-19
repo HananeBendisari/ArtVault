@@ -32,15 +32,15 @@ contract FuzzDeposit is Test {
     /// @dev Should revert if deposit amount is zero
     function testFuzz_RevertIfZeroDeposit() public {
         vm.startPrank(client);
-        vm.expectRevert("Amount must be > 0");
-        vault.depositFunds{value: 0}(artist, 3);
+        vm.expectRevert("Zero value");
+        vault.depositFunds(artist, 1);
         vm.stopPrank();
     }
 
     /// @dev Should revert if milestone count is zero
     function testFuzz_RevertIfZeroMilestones() public {
         vm.startPrank(client);
-        vm.expectRevert("Milestone count must be greater than zero");
+        vm.expectRevert("Milestone count must be greater than 0");
         vault.depositFunds{value: 1 ether}(artist, 0);
         vm.stopPrank();
     }

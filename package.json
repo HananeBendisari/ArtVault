@@ -1,0 +1,29 @@
+{
+  "name": "artvault",
+  "version": "1.0.0",
+  "description": "![Forge CI](https://github.com/HananeBendisari/ArtVault/actions/workflows/ci.yml/badge.svg) ![Tests](https://img.shields.io/badge/tests-100%25-green) ![Coverage](https://img.shields.io/badge/coverage-90%25-blue) ![Gas Optimized](https://img.shields.io/badge/gas--optimized-yes-brightgreen) ![BUSL License](https://img.shields.io/badge/license-BUSL%201.1-blue) ![Last Commit](https://img.shields.io/github/last-commit/HananeBendisari/ArtVault)",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs",
+    "lib": "lib",
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/HananeBendisari/ArtVault.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/HananeBendisari/ArtVault/issues"
+  },
+  "homepage": "https://github.com/HananeBendisari/ArtVault#readme",
+  "dependencies": {
+    "@thrackle-io/forte-rules-engine-sdk": "^0.0.4-rc.1"
+  }
+}

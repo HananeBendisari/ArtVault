@@ -36,7 +36,7 @@ contract ArtVaultTest is Test {
         oracle = new MockOracle(2000); // high price so releases are allowed
         vault = new TestVaultWithOracleOverride();
         vault.setOracleOverride(oracle);
-        
+
         // Fund client
         vm.deal(client, 100 ether);
     }
@@ -87,7 +87,7 @@ contract ArtVaultTest is Test {
         vault.refundClient(0);
 
         uint256 clientBalanceAfter = client.balance;
-        assertEq(clientBalanceAfter - before, 2 ether);
+       assertEq(clientBalanceAfter - before, 2 ether);
     }
 
     /// @dev Refund is blocked once all milestones are paid

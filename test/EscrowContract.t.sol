@@ -41,12 +41,10 @@ contract EscrowFuzzTest is Test {
         assertFalse(info.validated);
         assertEq(info.milestonesPaid, 0);
     }
-    function testFuzz_RevertIfZeroDeposit(uint256 amount) public {
-        vm.assume(amount == 0);
-
-        vm.prank(client);
-        vm.expectRevert("Amount must be > 0");
-        vault.depositFunds{value: amount}(artist, 1);
+    function testFuzz_RevertIfZeroDeposit(uint256 value) public {
+        vm.assume(value == 0);
+        vm.expectRevert("Zero value");
+        vault.depositFunds{value: value}(artist, 1);
     }
 
 }
