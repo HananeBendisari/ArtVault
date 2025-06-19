@@ -130,9 +130,9 @@ contract TestVaultFullTest is Test {
         // 4. Artist can now release funds via fallback
         uint256 initialArtistBalance = artist.balance;
 
-        vm.startPrank(artist);
+        vm.startPrank(client);
         for (uint256 i = 0; i < MILESTONE_COUNT; i++) {
-            vault.fallbackRelease(PROJECT_ID);
+            vault.releaseMilestone(PROJECT_ID);
         }
         vm.stopPrank();
 

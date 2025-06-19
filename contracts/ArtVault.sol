@@ -144,7 +144,7 @@ contract ArtVault is Pausable, BaseContract, EscrowContract, ValidationContract,
 
         if (config.useFallback) {
             require(address(fallbackModule) != address(0), "Fallback module not set");
-            require(fallbackModule.isFallbackReady(projectId, milestoneId), "Fallback not ready");
+            require(fallbackModule.isFallbackReady(projectId), "Fallback not ready");
         }
 
         if (config.useSignature) {

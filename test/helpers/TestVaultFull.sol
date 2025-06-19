@@ -118,7 +118,7 @@ contract TestVaultFull is
     /**
      * @dev Override of block.timestamp function for tests
      */
-    function _getCurrentTime() internal view override returns (uint256) {
+    function _getCurrentTime() internal view returns (uint256) {
         return currentTime;
     }
 

@@ -1,14 +1,25 @@
 {
-  "Policy": "ArtVault Basic Test",
-  "ForeignCalls": [],
-  "Trackers": [],
-  "RulesJSON": [
+  "rules": [
     {
-      "condition": "amount > 10000",
-      "positiveEffects": ["emit TransferSuccessful"],
-      "negativeEffects": ["revert(\"Transfer amount must be > 10,000\")"],
-      "functionSignature": "transfer(address recipient, uint256 amount)",
-      "encodedValues": "address recipient, uint256 amount"
+      "id": "require-kyc-level",
+      "type": "accessLevel",
+      "params": {
+        "minLevel": 2
+      }
+    },
+    {
+      "id": "enforce-delay",
+      "type": "timestampDelay",
+      "params": {
+        "minSecondsSinceValidation": 60
+      }
+    },
+    {
+      "id": "max-amount",
+      "type": "maxAmountPerMilestone",
+      "params": {
+        "maxWei": "1000000000000000000"
+      }
     }
   ]
 }
