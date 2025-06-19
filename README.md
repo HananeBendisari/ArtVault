@@ -7,8 +7,8 @@
 
 ## ArtVault – Decentralized Escrow for Creative Projects
 
-**ArtVault** is a modular smart contract system for milestone-based payments between clients and artists.
-It introduces **validator-based approval**, **automated releases via oracles**, and **dispute resolution**
+**ArtVault** is a modular smart contract system for milestone-based payments between clients and artists.  
+It introduces **validator-based approval**, **automated releases via oracles**, and **dispute resolution**  
 in a fully tested, gas-efficient Solidity design.
 
 ## Features
@@ -17,11 +17,35 @@ in a fully tested, gas-efficient Solidity design.
 * **Milestone-based Payments** – Staged payment logic with strict controls
 * **Validator System** – Only assigned validator can approve project
 * **Refund System** – Refund only if no milestone released
-* **Oracle-Gated Releases** – Milestone release gated by time or external conditions (e.g. concert date, event trigger), using overrideable oracle logic (Chainlink, Gelato, or ForteRules)
+* **Rule-Gated Releases** – Milestones can be gated by external logic (e.g. concert over, fraud flag, missing KYC) using a pluggable Forte Rules Engine module.
 * **Forte Integration** – Rule engine and KYC compliance ready; fiat integration planned
 * **Dispute Flagging** – Clients can flag disputes and track their status
 * **Modular Contracts** – Separation of concerns: [Escrow / Validation / Oracle / Dispute](./contracts/ArtVault.sol)
 * **Fraud Protection (Planned)** – Upcoming checks to detect suspicious behavior or double-spend attempts via override modules
+
+## ForteRules Engine Integration (Live Smart Contract Support)
+
+ArtVault now natively integrates the open-source [Forte Rules Engine](https://github.com/thrackle-io/forte-rules-engine), allowing real-time rule-based gating for milestone payments.
+
+- Smart contract integration uses the `RulesEngineClient` interface  
+- Onchain call to `validateRelease(user, rulesetId, data)` gates the release  
+- `rulesetId` is set per project and is dynamic  
+- Fallback, signature, and validator logic are preserved
+
+**Key Solidity components:**
+- `ArtVault.sol` – Checks `rulesetId > 0` and defers to `validateRelease(...)`
+- `MockForteRules.sol` – Used in tests to simulate allowed/blocked rules
+
+> This structure enables developers to plug any logic into milestone release: external delivery status, fraud scores, date-based rules, and more.
+
+Example:
+```solidity
+if (rulesetIds[projectId] > 0 && address(rulesModule) != address(0)) {
+    bytes memory data = abi.encode(projectId, milestoneId);
+    bool allowed = IRulesModule(rulesModule).validateRelease(msg.sender, rulesetIds[projectId], data);
+    require(allowed, "Release blocked by Forte rules");
+}
+```
 
 ## SealTheDeal – Instant, Secure, Artist-Friendly UX
 
@@ -51,7 +75,7 @@ Here's a preview of the mobile confirmation screen used just before sealing a de
 Too many Web3 dApps feel like using a terminal.
 **SealTheDeal** takes a different path: it feels like Apple Pay — *but for smart contracts.*
 
-It’s designed for:
+It's designed for:
 
 * Artists on the go
 * Real-world collaboration (concerts, commissions, live performances)
@@ -66,82 +90,55 @@ This UI sits on top of the **ArtVault** smart contract suite, enabling:
 
 ---
 
-### What’s next:
+### What's next
+We're currently building and testing this interface as part of our v1 milestone.
+If you want to collaborate, contribute, or just follow along — reach out on LinkedIn.
 
-We’re currently building and testing this interface as part of our v1 milestone.
-If you want to collaborate, contribute, or just follow along — [reach out on LinkedIn](https://www.linkedin.com/in/hanane-bendisari).
-
-
-## Forte Integration – Rules, KYC & Fiat Payments
-
-ArtVault is designed to work **natively with Forte's stack**, enabling compliant, rule-based and fiat-enabled creative payments.
-
-While ArtVault remains modular and usable with any oracle or logic layer, it offers **first-class compatibility with Forte's infrastructure**:
-
-### ForteRules Engine (SDK v2)
-
-ArtVault integrates a pluggable `ForteRulesModule` that simulates and validates per-project release conditions.
-Use cases include:
-
-* Only release milestone **after KYC is passed**
-* Only release after **a verified concert date or delivery status**
-* Dynamic gating via `rulesetId` (pre-configured rules managed in Forte)
-
-> ArtVault validates milestone releases based on logic defined in the ForteRules Engine, while remaining overrideable and testable on-chain.
-
-### KYC / Identity Compliance (Forte Identity)
-
-ArtVault reads on-chain KYC levels directly from Forte’s public Compliance contract (Base Sepolia), using getAccessLevel(address) for transparent enforcement of access levels.
+## KYC / Identity Compliance (Forte Identity)
+ArtVault reads on-chain KYC levels directly from Forte's public Compliance contract (Base Sepolia), using getAccessLevel(address) for transparent enforcement of access levels.
 
 This enables:
+- On-chain gating of deposits or withdrawals
+- KYC-verified payout flows
+- Grant compliance and public institution trust
 
-* On-chain gating of deposits or withdrawals
-* KYC-verified payout flows
-* Grant compliance and public institution trust
-
-### FortePay (Planned Integration)
-
-FortePay is planned for integration. Fiat-based deposits would be routed to ArtVault through a backend relay or wallet bridge, while artists or freelancers receive **ETH or stablecoins** via ArtVault.
+## FortePay (Planned Integration)
+FortePay is planned for integration. Fiat-based deposits would be routed to ArtVault through a backend relay or wallet bridge, while artists or freelancers receive ETH or stablecoins via ArtVault.
 Funds can be escrowed until conditions are met (validator, time, or ForteRules).
 
-> This creates a **Web2-friendly onramp** into secure, milestone-based Web3 payments — ideal for DAOs, music agencies, grant platforms, and more.
+This creates a Web2-friendly onramp into secure, milestone-based Web3 payments — ideal for DAOs, music agencies, grant platforms, and more.
 
 ## Combined Automation: Forte + Chainlink / Gelato
+ArtVault's architecture is modular and supports both logic layers (Forte) and automation layers (Chainlink / Gelato).
 
-ArtVault’s architecture is modular and supports both **logic layers (Forte)** and **automation layers (Chainlink / Gelato)**.
+| Layer           | Purpose                                                        |
+|-----------------|----------------------------------------------------------------|
+| ForteRules      | Business logic / compliance gating (canRelease)                |
+| ForteIdentity   | On-chain access level (ACL) compliance check via Base Sepolia  |
+| FortePay        | Fiat-to-crypto escrow routing                                  |
+| Chainlink / Gelato | Time-based or data-driven release triggers (concert over, etc.) |
 
-| Layer                  | Purpose                                                                          |
-| ---------------------- | -------------------------------------------------------------------------------- |
-| **ForteRules**         | Business logic / compliance gating (`canRelease`)                                |
-| **ForteIdentity**      | On-chain access level (ACL) compliance check via Base Sepolia                                                             |
-| **FortePay**           | Fiat-to-crypto escrow routing                                                    |
-| **Chainlink / Gelato** | Time-based or data-driven release triggers (concert over, deadline passed, etc.) |
-
-> Docs: Forte KYC verification and access level contract are live on Base Sepolia. RulesEngine logic is currently mocked in ArtVault, with planned backend relay integration.
+Docs: Forte KYC verification and access level contract are live on Base Sepolia.
+RulesEngine logic is fully integrated onchain, with mock and test infrastructure included.
 
 ## Example Use Cases
-
-* **Live Performance**: Automatic payment release once the concert ends (based on timestamp or Forte validation)
-* **Physical Delivery**: Package tracked via delivery status → triggers milestone release (via oracle or Forte rule)
-* **Manual Validation**: Validator confirms project or phase, allowing client to release funds
-* **Verified Payout Flows**: Grants, institutions, or clients can require KYC + validator confirmation before releasing funds, enabling compliant milestone-based disbursements.
-* **Fallback Logic** *(planned)*: Auto-release if no validation after X days (using Chainlink + Forte)
-* **Fraud Protection** *(planned)*: Detect replay attempts, duplicate releases, or identity spoofing
+- Live Performance – Release once the concert ends (timestamp or Forte validation)
+- Physical Delivery – Delivery status → milestone release via oracle or rules
+- Manual Validation – Validator confirms progress, unlocking release
+- KYC-Gated Disbursement – Grants/institutions require access level before releasing
+- Fallback Logic – Auto-release if no validation after X days
+- Fraud Protection – Prevent double-release, spoofed identity, replay attacks
 
 ## Oracle Integration
-
 ArtVault supports time-based and rule-based milestone releases via external oracles and logic engines (Chainlink, Gelato, Forte).
-When the `oracleModule` is enabled via `setProjectConfig`, `releaseMilestone` may be triggered externally.
+When the oracleModule is enabled via setProjectConfig, releaseMilestone may be triggered externally.
 
-This is tested in `ArtVaultOracleMockTest`:
+Tested in ArtVaultOracleMockTest:
+- Early triggers are rejected
+- Oracles can release milestones after expected conditions
+- Manual release remains client-restricted
 
-* Early triggers are rejected
-* Oracles can release milestones after expected conditions
-* Manual release remains client-restricted
-
----
-
-**Note**: A full security section, tech stack, and roadmap follow this integration block in the actual README.
+A full security section, tech stack, and roadmap follow this integration block.
 
 ## Workflow Diagram
 
@@ -169,31 +166,16 @@ This is tested in `ArtVaultOracleMockTest`:
 [View interactive workflow diagram](docs/diagram.md)
 
 ## Smart Contract Architecture
-
-* `BaseContract.sol` – Stores project state, shared modifiers, and events
-* `ValidationContract.sol` – Handles validator assignment and validation flow
-* `EscrowContract.sol` – Manages deposits, milestone release, and refunds
-* `DisputeModule.sol` – Adds dispute registration with status enum
-* `ArtVault.sol` – Main contract that composes all modules above
-* `ArtVaultOracleMock.sol` – Mocked oracle for time-based triggers (e.g., concert ends)
-
-## Detailed Steps
-
-1. **Client deposits ETH** and defines the number of milestones.
-2. **Validator is assigned** to oversee project completion.
-3. **Validation occurs** — either manually by the validator or via an oracle trigger (e.g., event ends).
-4. **Milestones payments are released**:
-
-   * Manually by the client
-   * Or automatically via oracle trigger (e.g. after concert ends)
-5. **Refund is possible**:
-
-   * Only if no milestone has been released yet.
-6. **Dispute** can be opened by the client to pause further payments and trigger resolution flow.
+- BaseContract.sol – Stores project state, shared modifiers, and events
+- ValidationContract.sol – Handles validator assignment and validation flow
+- EscrowContract.sol – Manages deposits, milestone release, and refunds
+- DisputeModule.sol – Adds dispute registration with status enum
+- ArtVault.sol – Main contract that composes all modules above
+- ArtVaultOracleMock.sol – Mocked oracle for time-based triggers (e.g., concert ends)
+- MockForteRules.sol – Test implementation of rules engine response
 
 ## Deployment & Testing
-
-All contracts are modular and tested using [Foundry](https://book.getfoundry.sh/).
+All contracts are modular and tested using Foundry.
 
 To run the full suite and generate a gas report:
 
@@ -201,76 +183,51 @@ To run the full suite and generate a gas report:
 forge test --gas-report
 ```
 
-See [`README-tests.md`](README-tests.md) for:
+See [`README-tests.md`](./README-tests.md) for:
+- Detailed gas usage table
+- Covered scenarios (happy path, reverts, refunds)
+- Fuzz tests for boundary logic
+- Oracle-triggered milestone automation
+- Forte Rules integration tests (blocking/allowing via mock)
+- Fallback delay-based tests
 
-* Detailed gas usage table
-* Covered scenarios (happy path, reverts, refunds)
-* Fuzz tests for boundary logic
-* Oracle-triggered milestone automation
-
-> ℹ️ Oracle behavior is tested via injection (override pattern), with real mock contracts in Foundry.
-> New: timestamp-based oracles are now tested through override injection.
-> Tests include both "too early" and "post-deadline" scenarios, using a mock simulating Chainlink-style automation.
+Oracle behavior is tested via injection (override pattern), with mock contracts in Foundry.
 
 ## Security Measures
+- ETH Transfer Safety – Using call{value}() with success checks
+- Payment Validation – Enforced divisibility to prevent leftover wei
+- Emergency Pause – Global pause mechanism
+- Access Control – onlyClient, onlyValidator, onlyOwner guards
+- Custom Errors – Gas-efficient revert logic with typed messages
+- Test Coverage – Over 50 tests with full logic coverage using forge test --via-ir
 
-* **ETH Transfer Safety** - Using `call{value}()` with success checks instead of `transfer()`
-* **Payment Validation** - Enforced divisibility checks to prevent leftover wei
-* **Emergency Pause** - Global pause mechanism with `whenNotPaused` modifier on critical functions
-* **Access Control** - Strict modifiers (`onlyClient`, `onlyValidator`) and timing guards
-* **Custom Errors** – All `require(..., "message")` statements replaced with [Solidity custom errors](https://docs.soliditylang.org/en/latest/control-structures.html#custom-errors) for lower gas usage and stricter revert handling
-* **Comprehensive Testing** - Over 50 unit and fuzz tests with 100% pass rate using `forge test --via-ir`
-
-⚠️ **Important**: While extensively tested, the protocol has not undergone a formal third-party audit yet. It is intended for research and testing only.
+Important: While extensively tested, the protocol has not undergone a formal third-party audit yet. It is intended for research and testing only.
 
 ## Technology Stack
+- Solidity ^0.8.19
+- Foundry (Forge) – testing, fuzzing, CI
+- OpenZeppelin Contracts – secure ERC & access controls
+- Mock Oracles / Rules – for simulation of real-world behavior
+- Modular Solidity Architecture – plug-and-play rules, signatures, fallback
 
-* **Solidity** `^0.8.19`
-* **Foundry (Forge)** – testing, fuzzing, CI
-* **OpenZeppelin Contracts** – security primitives
-* **Modular architecture** – separation of escrow, validation, oracle logic
-* **Mock oracles** – for time/event-driven automation simulations
-
-## Next Improvements & Roadmap
-
-* Finalizing dispute module tests and fixes (in progress)
-* Integrating fallback and signature modules for enhanced milestone management
-* Adding Chainlink Oracle integration for real-world event triggers (concert end, delivery tracking)
-* Building public-facing ForteRules integration
-* Developing arbitration and fallback dispute resolution mechanisms
-* Implementing a factory pattern for scalable multi-project deployments
-* Expanding multi-chain deployment support (Polygon, Arbitrum, and others)
-* Building a minimal UI ("SealThisDeal") for seamless and user-friendly milestone approvals
-* Enhancing fuzz test coverage and stabilization with improved mocks and oracle overrides
+## Roadmap
+- Finalize fallback + signature module support
+- Strengthen tests on ruleset branching
+- Launch public demo of SealTheDeal interface
+- Chainlink/Gelato oracle deployment for concerts
+- Launch Arbitrum + Base test deployments
+- Grant program applications for artist-centric use cases
 
 ## Contribution
-
 This project is open-source and community-driven.
-Feel free to submit bug reports, feature requests, or pull requests.
-
-Before contributing, please check the issue tracker and coding standards.
-All contributions will be reviewed and tested.
+Submit bug reports, ideas, or pull requests — all are welcome.
 
 ## Contact & Links
-
-Contact me on [LinkedIn](https://www.linkedin.com/in/hanane-bendisari) or open an issue to start a discussion.
-
-## Learn More
-
-| Document                                        | Purpose                                                     |
-| ----------------------------------------------- | ----------------------------------------------------------- |
-| [README-project.md](docs/README-project.md)     | Simplified overview for non-devs and general audiences      |
-| [README-technical.md](docs/README-technical.md) | Full breakdown of contract architecture, testing, and logic |
-| [Glossary.md](docs/Glossary.md)                 | Definitions of key concepts (client, oracle, validator...)  |
-
-These documents live in the `docs/` folder and are updated alongside the main project.
-Feel free to explore and suggest improvements via issues or pull requests.
+Find me on LinkedIn
+Or open an issue on GitHub to start the discussion.
 
 ## License
-
-This project is licensed under the **Business Source License 1.1 (BUSL-1.1)**.  
-You are free to view, fork, and contribute to the code.
-
-🚫 **However, commercial use is prohibited** without explicit written permission.
+This project is licensed under the Business Source License 1.1 (BUSL-1.1).
+You may view, fork, and contribute — commercial use prohibited until:
 
 🕒 On **June 12, 2028**, this license will automatically convert to **Apache 2.0**.

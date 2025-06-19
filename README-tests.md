@@ -20,7 +20,7 @@ Feel free to reach out or open issues if you'd like to collaborate.
 
 ---
 
-## ✅ Test Coverage (Foundry)
+## Test Coverage (Foundry)
 
 **Total Tests:** 33+  
 **All Passed:** ✅  
@@ -35,6 +35,8 @@ Feel free to reach out or open issues if you'd like to collaborate.
 | Fuzz tests (deposit/refund) | ✅     | Validations, reverts, overflow protection |
 | Fuzz milestone release      | ✅     | Up to 255 milestones stress-tested |
 | Event emission & order      | ✅     | Using recordLogs for multi-event tracking |
+| ForteRules integration      | ✅     | Tests blocking/allowing release via mock ruleset |
+| Fallback logic              | ✅     | Auto-release triggered after fallback delay |
 
 ---
 
@@ -68,6 +70,13 @@ Feel free to reach out or open issues if you'd like to collaborate.
   The test suite includes override injection to simulate oracle behavior cleanly.  
   Includes both price-based (MockOracle) and time-based (ArtVaultOracleMock) oracles.
 
+- **ForteRules Validation**  
+  `validateRelease(...)` is mocked and tested for both blocked and allowed paths.  
+  Ensures the logic correctly defers release to the rules engine.
+
+- **Fallback Delay Logic**  
+  Tests simulate `vm.warp()` to validate time-gated releases when no validator responds.
+
 ---
 
 ## Stress Tests
@@ -98,6 +107,12 @@ The test suite includes fuzz tests to simulate edge cases and verify robustness 
 - **`ArtVaultOracleMock.t.sol`**  
   Simulates a Chainlink-style oracle triggering `releaseMilestone()` automatically once an off-chain event has passed (e.g., concert finished).
 
+- **`ForteRulesValidationTest.t.sol`**  
+  Asserts the `rulesModule` correctly blocks or allows milestone release per ruleset logic.
+
+- **`EndToEndFallback.t.sol`**  
+  Verifies fallback delay unlocks release after timeout, in absence of validation.
+
 Each test ensures logic consistency, state integrity, and revert safety under varied input values.
 
 ---
@@ -117,7 +132,7 @@ The following report summarizes gas consumption from the latest test run:
 | `validateProject`    | 26,518  | 31,641  | 31,679  | 270   |
 
 **Deployment Cost:** ~3,375,090 gas  
-**Contract Size:** 15869 bytes
+**Contract Size:** 15,869 bytes
 
 > `releaseMilestone()` gas usage varies depending on milestone count and oracle override state.  
 > The overall structure remains modular and gas-conscious, despite security checks and automation hooks.  
@@ -135,28 +150,30 @@ Foundry will execute unit + fuzz tests on all core modules.
 
 ---
 
-## 🧭 Future Testing Plans (Priority Order)
+## Future Testing Plans (Priority Order)
 
-1. **Dispute Resolution Logic**
+1. **Dispute Resolution Logic**  
    Complete coverage for `DisputeModule` with edge cases and access control.
 
-2. **Oracle & Automation**
+2. **Oracle & Automation**  
    Advanced oracle simulations including Chainlink and Gelato-style triggers.
 
-3. **Multiple Projects**
+3. **Multiple Projects**  
    Handling multiple concurrent projects per client.
 
-4. **Cross-Network Consistency**
+4. **Cross-Network Consistency**  
    Tests on Polygon, Arbitrum, etc.
 
-5. **Security Edge Cases**
+5. **Security Edge Cases**  
    Stress and fuzz tests for reentrancy, malicious actors, and fallback scenarios.
 
-6. **Fuzz Test Oracle Injection**
+6. **Fuzz Test Oracle Injection**  
    Mocking oracle responses dynamically during fuzzing.
 
-7. **Factory Pattern**
+7. **Factory Pattern**  
    Testing multi-instance vault deployments and delegation.
+
+---
 
 # ArtVault Test Documentation
 
@@ -166,7 +183,7 @@ The test suite includes comprehensive security testing for all critical function
 
 ### Fallback Module Tests (`test/FallbackModule.t.sol`)
 
-✅ `fallbackRelease()` tested against reentrancy attack using malicious artist mock
+ `fallbackRelease()` tested against reentrancy attack using malicious artist mock
 - Validates Checks-Effects-Interactions pattern
 - Ensures state changes happen before ETH transfer
 - Verifies protection against malicious contracts
