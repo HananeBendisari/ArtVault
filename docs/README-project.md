@@ -49,6 +49,7 @@ ArtVault is built using modular Solidity contracts:
 * **Dispute Module:** Clients can raise disputes after partial delivery
 * **Oracle Override:** External contract can trigger milestone (e.g. timestamp-based)
 * **Mock Oracles:** Used for simulation/testing of event-based flows
+* **Meta-Transaction Support:** Milestone actions (deposit, release) can be executed gaslessly via Gelato Relay (callWithSyncFeeERC2771), with full access control and fee handling.
 
 ### Ready for:
 
@@ -57,6 +58,7 @@ ArtVault is built using modular Solidity contracts:
 * Complex flows (fallbacks, overrides, disputes)
 * UI integrations (SealThisDeal)
 * Multi-project and factory setups
+* Gasless UX and relayed execution (Gelato Relay, ERC-2771)
 
 ArtVault is designed to evolve with real-world usage and open collaboration.
 

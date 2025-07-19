@@ -18,15 +18,23 @@ contract FuzzReleaseMilestone is Test {
     address client = address(0x1);
     address payable artist = payable(address(0x2));
     address validator = address(0x3);
+    address public trustedForwarder;
 
     function setUp() public {
-        // Use overrideable vault and inject a high price oracle (always passes)
+        trustedForwarder = address(0x61F2976610970AFeDc1d83229e1E21bdc3D5cbE4);
         vault = new TestVaultWithOracleOverride();
         oracle = new MockOracle(2000);
         vault.setOracleOverride(oracle);
 
         // Prefund the client for testing
         vm.deal(client, 10 ether);
+    }
+
+    function setUpWithOracle(uint256 price) public {
+        trustedForwarder = address(0x61F2976610970AFeDc1d83229e1E21bdc3D5cbE4);
+        vault = new TestVaultWithOracleOverride();
+        oracle = new MockOracle(price);
+        vault.setOracleOverride(oracle);
     }
 
     /// @dev Fuzzes milestoneCount and ensures milestones are correctly released

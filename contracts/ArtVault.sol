@@ -22,11 +22,14 @@ interface IRulesModule {
     function validateRelease(address user, uint256 rulesetId, bytes calldata data) external view returns (bool);
 }
 
+// Gelato meta-tx: Import GelatoRelayContextERC2771 for callWithSyncFeeERC2771
+import {GelatoRelayContextERC2771} from "@gelatonetwork/relay-context/contracts/GelatoRelayContextERC2771.sol";
+
 /**
  * @title ArtVault
  * @dev Escrow contract for milestone-based payments, with modular rule engine integration.
  */
-contract ArtVault is Pausable, BaseContract, EscrowContract, ValidationContract, DisputeModule {
+contract ArtVault is Pausable, BaseContract, EscrowContract, ValidationContract, DisputeModule, GelatoRelayContextERC2771 {
     // External modules
     IForteRules public forteRules;
     IFallbackModule public fallbackModule;
@@ -48,7 +51,8 @@ contract ArtVault is Pausable, BaseContract, EscrowContract, ValidationContract,
 
     mapping(uint256 => ProjectConfig) public projectConfigs;
 
-    constructor() Pausable(msg.sender) {}
+    // Gelato meta-tx: No trustedForwarder needed, use GelatoRelayContextERC2771
+    constructor() Pausable() {}
 
     function createProject(
         uint256 _projectId,
@@ -60,7 +64,7 @@ contract ArtVault is Pausable, BaseContract, EscrowContract, ValidationContract,
         require(_milestoneCount > 0, "Milestone count must be greater than 0");
 
         projects[_projectId] = Project({
-            client: msg.sender,
+            client: _msgSender(), // Meta-tx: Override msg.sender
             artist: _artist,
             amount: 0,
             released: false,
@@ -83,7 +87,7 @@ contract ArtVault is Pausable, BaseContract, EscrowContract, ValidationContract,
         bool _useFallback,
         bool _useSig
     ) external whenNotPaused {
-        require(msg.sender == projects[_projectId].client, "Only client can configure project");
+        require(_msgSender() == projects[_projectId].client, "Only client can configure project"); // Meta-tx: Override msg.sender
         require(projects[_projectId].client != address(0), "Project does not exist");
 
         projectConfigs[_projectId] = ProjectConfig({
@@ -126,7 +130,9 @@ contract ArtVault is Pausable, BaseContract, EscrowContract, ValidationContract,
         return address(_oracleOverride) != address(0) ? _oracleOverride : oracle;
     }
 
-    function releaseMilestone(uint256 projectId) public virtual override whenNotPaused onlyClient(projectId) {
+    function releaseMilestone(uint256 projectId) public virtual override onlyGelatoRelayERC2771 whenNotPaused onlyClient(projectId) {
+        // Gelato meta-tx: Transfer relay fee
+        _transferRelayFee();
         ProjectConfig memory config = projectConfigs[projectId];
         uint256 milestoneId = projects[projectId].milestonesPaid;
 
@@ -138,7 +144,7 @@ contract ArtVault is Pausable, BaseContract, EscrowContract, ValidationContract,
         // ForteRulesModule with dynamic ruleset
         if (rulesetIds[projectId] > 0 && address(rulesModule) != address(0)) {
             bytes memory data = abi.encode(projectId, milestoneId);
-            bool allowed = IRulesModule(rulesModule).validateRelease(msg.sender, rulesetIds[projectId], data);
+            bool allowed = IRulesModule(rulesModule).validateRelease(_getMsgSender(), rulesetIds[projectId], data); // Gelato meta-tx: Use _getMsgSender
             require(allowed, "Release blocked by Forte rules");
         }
 
@@ -163,7 +169,7 @@ contract ArtVault is Pausable, BaseContract, EscrowContract, ValidationContract,
         uint256 newProjectId = projectCount;
 
         projects[newProjectId] = Project({
-            client: msg.sender,
+            client: _msgSender(), // Meta-tx: Override msg.sender
             artist: _artist,
             amount: msg.value,
             released: false,
@@ -178,6 +184,11 @@ contract ArtVault is Pausable, BaseContract, EscrowContract, ValidationContract,
         });
 
         projectCount++;
-        emit FundsDeposited(newProjectId, msg.sender, _artist, msg.value);
+        emit FundsDeposited(newProjectId, _msgSender(), _artist, msg.value); // Meta-tx: Override msg.sender
+    }
+
+    // Override _getMsgSender to use GelatoRelayContextERC2771 logic
+    function _getMsgSender() internal view override(BaseContract, GelatoRelayContextERC2771) returns (address) {
+        return GelatoRelayContextERC2771._getMsgSender();
     }
 }

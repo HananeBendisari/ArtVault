@@ -19,16 +19,11 @@ contract ArtVault_ConfigTest is Test {
     address client = address(1);
     address payable artist = payable(address(2));
     address dummyModule = address(99); // Dummy address used to simulate module contracts
+    address public trustedForwarder;
 
     // Basic setup: deploy a fresh vault and create one project
     function setUp() public {
         vault = new ArtVault();
-        vm.deal(client, 10 ether);
-
-        // Client creates a project with ID 123 and 3 milestones
-        vm.startPrank(client);
-        vault.createProject(123, artist, 3);
-        vm.stopPrank();
     }
 
     // Test that the client can configure which modules are active for a given project

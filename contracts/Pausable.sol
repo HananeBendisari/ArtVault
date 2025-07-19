@@ -16,7 +16,7 @@ contract Pausable is Ownable {
     /**
      * @dev Initializes the contract in unpaused state.
      */
-    constructor(address initialOwner) Ownable(initialOwner) {
+    constructor() Ownable() {
         _paused = false;
     }
 

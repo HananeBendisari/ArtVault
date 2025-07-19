@@ -17,9 +17,10 @@ contract FuzzRefund is Test {
     address client = address(0x1);
     address payable artist = payable(address(0x2));
     address validator = address(0x3);
+    address public trustedForwarder;
 
     function setUp() public {
-        // Deploy overrideable vault with mock oracle above threshold
+        trustedForwarder = address(0x61F2976610970AFeDc1d83229e1E21bdc3D5cbE4);
         vault = new TestVaultWithOracleOverride();
         oracle = new MockOracle(2000); // >1000 = allow release
         vault.setOracleOverride(oracle);

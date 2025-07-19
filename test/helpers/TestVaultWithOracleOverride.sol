@@ -13,6 +13,9 @@ contract TestVaultWithOracleOverride is ArtVault {
     error PriceTooLow(uint256 price, uint256 minPrice);
     error TransferFailed(address recipient, uint256 amount);
     
+    // Pass trustedForwarder to ArtVault for tests
+    // (Suppression du constructeur prenant trustedForwarder)
+
     function setOracleOverride(IOracle o) public override {
         _oracleOverride = o;
     }
@@ -69,7 +72,7 @@ contract TestVaultWithOracleOverride is ArtVault {
         require(_milestoneCount > 0, "Milestone count must be greater than zero");
 
         projects[_projectId] = Project({
-            client: msg.sender,
+            client: _msgSender(), // Meta-tx: Override msg.sender for meta-tx
             artist: _artist,
             amount: 0,
             released: false,

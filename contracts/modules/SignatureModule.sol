@@ -32,11 +32,12 @@ contract SignatureModule is BaseContract {
     function confirmSignature(uint256 projectId) external {
         Project storage project = projects[projectId];
         if (!project.useSignature) revert SignatureModuleNotEnabled();
-        if (msg.sender != project.client && msg.sender != project.artist) revert OnlyClientOrArtistCanSign();
-        if (signatures[projectId][msg.sender]) revert AlreadySigned();
+        address sender = _getMsgSender();
+        if (sender != project.client && sender != project.artist) revert OnlyClientOrArtistCanSign();
+        if (signatures[projectId][sender]) revert AlreadySigned();
 
-        signatures[projectId][msg.sender] = true;
-        emit SignatureConfirmed(msg.sender, projectId);
+        signatures[projectId][sender] = true;
+        emit SignatureConfirmed(sender, projectId);
     }
 
     /**

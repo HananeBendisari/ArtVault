@@ -32,6 +32,10 @@ This makes ArtVault suitable for workflows where crypto can't be forced on users
 * **Oracle Override Logic:** Allows controlled automation triggers
 * **External Compliance Checks:** On-chain KYC via Forte’s Access Control Level contract on Base Sepolia
 
+## Gelato Relay Integration
+
+ArtVault supports meta-transactions via Gelato Relay, enabling gasless milestone actions (deposit, release, etc.) for users. The contract inherits from `GelatoRelayContextERC2771` and uses `callWithSyncFeeERC2771` for delegated execution and token-based gas payment. The `onlyGelatoRelay` modifier ensures only trusted relayers can trigger meta-functions, `_transferRelayFee()` handles secure fee payment, and `_getMsgSender()` is used for all access and KYC checks. Meta-transaction flows are covered in the test suite, and integration with Gelato’s live relayer is possible on Sepolia/Base.
+
 ## Security Considerations
 
 * `ReentrancyGuard` to prevent recursive calls
@@ -40,7 +44,6 @@ This makes ArtVault suitable for workflows where crypto can't be forced on users
 * State machine approach to prevent incorrect transitions
 * On-chain ACL enforced via `getAccessLevel(address)` from Forte Compliance contract
 * Disputes can be opened by clients at any point before full fund release. Once open, further payments are blocked.
-
 
 ## Testing Strategy
 
@@ -51,7 +54,7 @@ This makes ArtVault suitable for workflows where crypto can't be forced on users
 
 ## Planned Upgrades
 
-* Chainlink/Gelato integration
+* Chainlink integration
 * Signature-based release confirmation
 * Fallback automation module
 * Dispute resolution flow (e.g., arbitration, manual settlement)

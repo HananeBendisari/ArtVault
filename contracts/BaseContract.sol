@@ -60,7 +60,7 @@ contract BaseContract {
      * @param _projectId The ID of the project.
      */
     modifier onlyClient(uint256 _projectId) {
-        if (msg.sender != projects[_projectId].client) revert OnlyClient();
+        if (_getMsgSender() != projects[_projectId].client) revert OnlyClient();
         _;
     }
 
@@ -69,7 +69,7 @@ contract BaseContract {
      * @param _projectId The ID of the project.
      */
     modifier onlyValidator(uint256 _projectId) {
-        if (msg.sender != projects[_projectId].validator) revert OnlyAssignedValidator();
+        if (_getMsgSender() != projects[_projectId].validator) revert OnlyAssignedValidator();
         _;
     }
 
@@ -77,7 +77,7 @@ contract BaseContract {
      * @dev Modifier to restrict access to KYC-verified users.
      */
     modifier onlyKYCApproved() {
-        if (!isKYCApproved(msg.sender)) revert KYCNotApproved();
+        if (!isKYCApproved(_getMsgSender())) revert KYCNotApproved();
         _;
     }
 
@@ -135,5 +135,12 @@ contract BaseContract {
     
     function getOracle() public view virtual returns (IOracle) {
         return IOracle(address(0));
+    }
+
+    /**
+     * @dev Returns the correct sender for access checks (overridden in meta-tx context)
+     */
+    function _getMsgSender() internal view virtual returns (address) {
+        return msg.sender;
     }
 }

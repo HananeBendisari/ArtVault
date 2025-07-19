@@ -2,7 +2,7 @@
 pragma solidity ^0.8.19;
 
 import "./BaseContract.sol";
-import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "./ValidationContract.sol";
 import "./interfaces/IOracle.sol";
 

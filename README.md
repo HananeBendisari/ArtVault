@@ -22,6 +22,7 @@ in a fully tested, gas-efficient Solidity design.
 * **Dispute Flagging** – Clients can flag disputes and track their status
 * **Modular Contracts** – Separation of concerns: [Escrow / Validation / Oracle / Dispute](./contracts/ArtVault.sol)
 * **Fraud Protection (Planned)** – Upcoming checks to detect suspicious behavior or double-spend attempts via override modules
+* **Meta-Transaction Support (Gelato Relay)** – Users can interact gaslessly (deposit, release, etc.) via Gelato's callWithSyncFeeERC2771. Only trusted relayers can trigger meta-functions (`onlyGelatoRelay`), fees are paid automatically (`_transferRelayFee()`), and all access checks use the original sender (`_getMsgSender()`).
 
 ## ForteRules Engine Integration (Live Smart Contract Support)
 
@@ -205,10 +206,19 @@ Important: While extensively tested, the protocol has not undergone a formal thi
 
 ## Technology Stack
 - Solidity ^0.8.19
+- OpenZeppelin Contracts v4.8+
+- Gelato Relay (callWithSyncFeeERC2771, ERC-2771 meta-tx)
 - Foundry (Forge) – testing, fuzzing, CI
-- OpenZeppelin Contracts – secure ERC & access controls
-- Mock Oracles / Rules – for simulation of real-world behavior
+- Hardhat compatible (deployment scripts)
 - Modular Solidity Architecture – plug-and-play rules, signatures, fallback
+
+## Integration Summary  
+- Supports ERC-2771 meta-transactions  
+- Uses callWithSyncFeeERC2771 from Gelato SDK  
+- Inherits from GelatoRelayContextERC2771  
+- Uses _transferRelayFee() and _getMsgSender() internally  
+- Fully tested via Foundry (unit and integration)
+
 
 ## Roadmap
 - Finalize fallback + signature module support
@@ -231,3 +241,5 @@ This project is licensed under the Business Source License 1.1 (BUSL-1.1).
 You may view, fork, and contribute — commercial use prohibited until:
 
 🕒 On **June 12, 2028**, this license will automatically convert to **Apache 2.0**.
+
+

@@ -31,6 +31,7 @@ contract DisputeModuleTest is Test {
     address public constant CLIENT = address(1);
     address payable public constant ARTIST = payable(address(2));
     address public constant VALIDATOR = address(3);
+    address public trustedForwarder;
 
     // Constants
     uint256 public constant INITIAL_BALANCE = 10 ether;
@@ -52,7 +53,7 @@ contract DisputeModuleTest is Test {
 
     /// @notice Initial setup for each test
     function setUp() public {
-        // Initialize contracts
+        trustedForwarder = address(0x61F2976610970AFeDc1d83229e1E21bdc3D5cbE4);
         vault = new TestVaultWithOracleOverride();
         oracle = new MockOracle(ORACLE_PRICE);
         vault.setOracleOverride(oracle);

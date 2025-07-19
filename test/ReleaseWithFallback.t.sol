@@ -14,6 +14,7 @@ contract ReleaseWithFallbackTest is Test {
     address public client = address(1);
     address payable public artist = payable(address(2));
     address public validator = address(3);
+    address public trustedForwarder;
 
     uint256 public projectId;
     uint256 public milestoneCount = 2;
@@ -21,6 +22,7 @@ contract ReleaseWithFallbackTest is Test {
     uint256 public fallbackDelay = 1 days;
 
     function setUp() public {
+        trustedForwarder = address(0x61F2976610970AFeDc1d83229e1E21bdc3D5cbE4);
         vm.deal(client, 10 ether);
 
         vault = new ArtVault();

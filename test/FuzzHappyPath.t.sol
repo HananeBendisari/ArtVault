@@ -21,11 +21,14 @@ address client = address(0x1);
 address payable artist = payable(address(0x2));
 address validator = address(0x3);
 
+address public trustedForwarder;
+
 /// @dev Sets up a valid vault with oracle and funds
 function setUp() public {
-vault = new TestVaultWithOracleOverride();
-oracle = new MockOracle(2000); // ✅ override with valid price
-vault.setOracleOverride(oracle);
+    trustedForwarder = address(0x61F2976610970AFeDc1d83229e1E21bdc3D5cbE4);
+    vault = new TestVaultWithOracleOverride();
+    oracle = new MockOracle(2000); // ✅ override with valid price
+    vault.setOracleOverride(oracle);
 
  vm.deal(client, 10 ether);
 }

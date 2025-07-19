@@ -18,9 +18,10 @@ contract ArtVaultOracleMockTest is Test {
     address client = address(1);
     address payable artist = payable(address(2));
     address validator = address(3);
+    address public trustedForwarder;
 
     function setUp() public {
-        // Deploy a vault with override capabilities and link the oracle
+        trustedForwarder = address(0x61F2976610970AFeDc1d83229e1E21bdc3D5cbE4);
         vault = new TestVaultWithOracleOverride();
         oracle = new ArtVaultOracleMock(address(vault));
         vault.setOracleOverride(IOracle(address(oracle)));

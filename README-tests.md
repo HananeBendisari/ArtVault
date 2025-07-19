@@ -198,6 +198,13 @@ The `test/mocks/` directory contains contracts used for security testing:
   - Attempts to exploit ETH transfers for multiple payments
   - Demonstrates secure implementation of Checks-Effects-Interactions
 
+## Gelato Relay Meta-Transaction Testing
+
+ArtVault's test suite covers all meta-transaction logic introduced by the Gelato Relay integration.
+- Functions protected by `onlyGelatoRelay` are tested for correct access control and fee handling.
+- `_getMsgSender()` is validated to ensure the original user is always used in business logic and KYC checks.
+- Meta-transaction flows are simulated in unit tests; full integration with Gelato's live relayer is possible on Sepolia/Base.
+
 ## Running Tests
 
 ```bash

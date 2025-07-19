@@ -13,6 +13,7 @@ contract FuzzEdgeCases is Test {
     ArtVault vault;
     address client = address(0x1);
     address payable artist = payable(address(0x2));
+    address public trustedForwarder;
 
     function setUp() public {
         vault = new ArtVault();

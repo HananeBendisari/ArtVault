@@ -25,30 +25,14 @@ contract ForteRulesValidationTest is Test {
     address public client = address(1);
     address payable public artist = payable(address(2));
     uint256 public projectId = 0;
+    address public trustedForwarder;
 
     function setUp() public {
         vm.deal(client, 10 ether);
-
         vault = new ArtVault();
         rules = new MockRulesModule(true); // allow = true by default
         oracle = new MockOracle(2000);
         vault.setOracleOverride(oracle);
-
-        vm.startPrank(client);
-        vault.createProject(projectId, artist, 1);
-        vault.depositFunds{value: 1 ether}(artist, 1);
-        vault.setProjectConfig(projectId, true, false, false); // useForteRules = true
-        vm.stopPrank();
-
-        vm.prank(vault.owner());
-        vault.setRulesModule(address(rules));
-        vm.prank(vault.owner());
-        vault.setRulesetId(projectId, 1);
-
-        vm.prank(client);
-        vault.addValidator(projectId, client);
-        vm.prank(client);
-        vault.validateProject(projectId);
     }
 
     function testReleaseWithPassingRules() public {

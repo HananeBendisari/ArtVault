@@ -18,15 +18,12 @@ contract ArtVault_ModulesTest is Test {
     MockOracle public oracle;
     address client;
     address payable artist;
+    address public trustedForwarder;
 
     function setUp() public {
         vault = new ArtVault();
         oracle = new MockOracle(2000); // price always >= 1000
         vault.setOracleOverride(oracle);
-
-        client = address(1);
-        artist = payable(address(2));
-        vm.deal(client, 10 ether); // Fund test client for deposits
     }
 
     /**

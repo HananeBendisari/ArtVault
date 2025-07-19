@@ -10,12 +10,12 @@ contract EscrowFuzzTest is Test {
     ArtVault vault;
     address client = address(1);
     address artist = address(2);
+    address public trustedForwarder;
 
     function setUp() public {
         vault = new ArtVault();
-
         // Give client some ETH
-        vm.deal(client, 100 ether);
+        vm.deal(client, 10 ether);
     }
 
     function testFuzz_DepositFunds(uint256 amount, uint256 milestoneCount) public {

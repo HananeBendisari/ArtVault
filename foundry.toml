@@ -4,8 +4,9 @@ out = "out"
 libs = ["lib"]
 test = "test"
 remappings = [
-  "@openzeppelin/=lib/openzeppelin-contracts/",
-  "forge-std/=lib/forge-std/src/"
+  "@openzeppelin/=node_modules/@openzeppelin/",
+  "@gelatonetwork/relay-context/=node_modules/@gelatonetwork/relay-context/",
+  "@gelatonetwork/relay-sdk/=node_modules/@gelatonetwork/relay-sdk/"
 ]
 gas_reports = ["*"]
 via_ir = true

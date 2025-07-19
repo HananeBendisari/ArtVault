@@ -45,7 +45,7 @@ contract TestVaultWithSignature is BaseContract, EscrowContract, SignatureModule
 
         // Update existing project
         Project storage project = projects[0]; // For test simplicity, always use project 0
-        require(project.client == msg.sender, "Only client can deposit funds");
+        require(project.client == _getMsgSender(), "Only client can deposit funds");
         require(project.artist == _artist, "Artist mismatch");
         require(project.milestoneCount == _milestoneCount, "Milestone count mismatch");
         require(project.amount == 0, "Funds already deposited");
@@ -58,7 +58,7 @@ contract TestVaultWithSignature is BaseContract, EscrowContract, SignatureModule
     /// @dev Enables signature module for a project
     function setProjectConfig(uint256 projectId) external {
         Project storage project = projects[projectId];
-        require(project.client == msg.sender, "Only client can configure project");
+        require(project.client == _getMsgSender(), "Only client can configure project");
         project.useSignature = true;
     }
 } 

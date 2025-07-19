@@ -25,18 +25,19 @@ contract ArtVaultTest is Test {
     address payable public client;
     address payable public artist;
     address public validator;
+    address public trustedForwarder;
 
     function setUp() public {
         // Setup accounts
         client = payable(address(1));
         artist = payable(address(2));
         validator = address(3);
-        
-        // Deploy contracts
+        // Use the real Gelato Sepolia trusted forwarder address
+        trustedForwarder = 0xb539068872230f20456CF38EC52EF2f91AF4AE49;
+        // Deploy contracts with the trusted forwarder
         oracle = new MockOracle(2000); // high price so releases are allowed
         vault = new TestVaultWithOracleOverride();
         vault.setOracleOverride(oracle);
-
         // Fund client
         vm.deal(client, 100 ether);
     }
@@ -54,6 +55,28 @@ contract ArtVaultTest is Test {
         assertEq(info.validator, address(0));
         assertEq(info.milestoneCount, 3);
         assertEq(info.milestonesPaid, 0);
+    }
+
+    /// @dev Simulate a relayed call using Gelato's trusted forwarder
+    function testMetaTxDepositFunds() public {
+        // Prepare calldata for depositFunds(artist, 3)
+        bytes memory callData = abi.encodeWithSelector(
+            vault.depositFunds.selector,
+            artist,
+            uint256(3)
+        );
+        // Append client address as last 20 bytes (ERC2771Context)
+        bytes memory metaTxData = bytes.concat(callData, bytes20(address(client)));
+        // Simulate relay: msg.sender = trustedForwarder, msg.data = metaTxData
+        vm.prank(trustedForwarder);
+        (bool success, ) = address(vault).call{value: 2 ether}(metaTxData);
+        require(success, "Meta-tx deposit failed");
+        // Assert project created with client as original sender
+        TestHelper.ProjectInfo memory info = TestHelper.getProjectInfo(vault, 0);
+        assertEq(info.client, client);
+        assertEq(info.amount, 2 ether);
+        assertEq(info.artist, artist);
+        assertEq(info.milestoneCount, 3);
     }
 
     /// @dev Tests a full release flow: deposit, assign validator, validate, release 1 milestone
@@ -269,6 +292,20 @@ contract ArtVaultTest is Test {
 
         TestHelper.ProjectInfo memory info = TestHelper.getProjectInfo(vault, 0);
         assertEq(info.milestonesPaid, 1);
+    }
+
+    /// @dev Ensure releaseMilestone reverts if not called by Gelato relay
+    function testReleaseMilestoneRevertsIfNotGelatoRelay() public {
+        vm.prank(client);
+        vault.depositFunds{value: 3 ether}(artist, 3);
+        vm.prank(client);
+        vault.addValidator(0, validator);
+        vm.prank(validator);
+        vault.validateProject(0);
+        // Try to call releaseMilestone directly (should revert)
+        vm.prank(client);
+        vm.expectRevert("onlyGelatoRelayERC2771");
+        vault.releaseMilestone(0);
     }
 
     function testCreateProject() public {

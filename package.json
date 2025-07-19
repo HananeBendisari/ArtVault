@@ -24,6 +24,9 @@
   },
   "homepage": "https://github.com/HananeBendisari/ArtVault#readme",
   "dependencies": {
+    "@gelatonetwork/relay-context": "^4.1.1",
+    "@gelatonetwork/relay-sdk": "^5.6.0",
+    "@openzeppelin/contracts": "^4.9.6",
     "@thrackle-io/forte-rules-engine-sdk": "^0.0.4-rc.1"
   }
 }
