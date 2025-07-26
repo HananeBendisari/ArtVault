@@ -237,9 +237,8 @@ Find me on LinkedIn
 Or open an issue on GitHub to start the discussion.
 
 ## License
-This project is licensed under the Business Source License 1.1 (BUSL-1.1).
-You may view, fork, and contribute — commercial use prohibited until:
 
-🕒 On **June 12, 2028**, this license will automatically convert to **Apache 2.0**.
+This project is licensed under the **MIT License**.  
+See the [LICENSE](./LICENSE) file for full details.
 
 
